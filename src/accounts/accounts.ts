@@ -1,4 +1,9 @@
 import {Request, RequestHandler, Response} from "express";
+import OracleDB from "oracledb";
+import dotenv from 'dotenv';
+import {resolve} from 'path';
+
+dotenv.config({ path: resolve('C:/workspace/outros/.env') });
 
 export namespace AccountsHandler {
     
@@ -32,6 +37,40 @@ export namespace AccountsHandler {
         return eventsDatabase.length;
     }
 
+    async function login(email: string, password: string) {
+        OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
+
+        let connection = await OracleDB.getConnection({
+            user: process.env.ORACLE_USER,
+            password: process.env.ORACLE_PASSWORD,
+            connectString: process.env.ORACLE_CONN_STR
+        });
+
+        let accounts = await connection.execute(
+            // 'SELECT * FROM ACCOUNTS WHERE email = :email AND password = :password;',
+            // [email, password]
+            'SELECT * FROM ACCOUNTS'
+        );
+
+        await connection.close();
+
+        console.log(accounts.rows);
+    }
+
+    export const loginRoute: RequestHandler = 
+        async (req: Request, res: Response) => {
+            const pEmail = req.get('email');
+            const pPassword = req.get('password');
+            if(pEmail && pPassword){
+                await login(pEmail, pPassword);
+                res.statusCode = 200;
+                res.send('Login realizado... confira...');
+            } else {
+                res.statusCode = 400;
+                res.send('Requisição inválida - Parâmetros faltando.')
+            }
+    }
+
     export const createAccountRoute: RequestHandler = (req: Request, res: Response) => {
         const pName = req.get('name');
         const pEmail = req.get('email');
@@ -56,37 +95,6 @@ export namespace AccountsHandler {
         }
     }
 
-    export const loginRoute: RequestHandler = (req: Request, res: Response) => {
-        const pEmail = req.get('email');
-        const pPassword = req.get('password');
-
-        if (pEmail && pPassword) {
-            const userAccount = accountsDatabase.find(account => {
-                const emailEncontrado = account.email === pEmail;
-                const passwordEncontrado = account.password === pPassword;
-              
-                if (emailEncontrado && passwordEncontrado) {
-                  return account;
-                }
-            });
-              
-
-            if (userAccount) {
-                res.statusCode = 200;
-                res.send(`Login bem-sucedido! Bem-vindo, ${userAccount.name}.`);
-            } 
-            
-            else {
-                res.statusCode = 401;
-                res.send('Email ou senha incorretos.');
-            }
-        }
-
-        else {
-            res.statusCode = 400;
-            res.send("Parâmetros inválidos ou faltantes.");
-        }
-    }
 
     export const addEventRoute: RequestHandler = (req: Request, res: Response) => {
         const pTitle = req.get('title');
