@@ -185,7 +185,55 @@ export namespace AccountsHandler {
 
 }
 
+// Função para buscar eventos por palavra-chave no banco de dados Oracle
+export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
+    const keyword = req.get('keyword'); // Palavra-chave de busca fornecida na requisição
 
+    if (!keyword) {
+        res.statusCode = 400;
+        res.send("Você precisa informar uma palavra-chave para a busca.");
+        return;
+    }
+
+    OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
+
+    // Conecta ao banco de dados Oracle
+    const connection = await OracleDB.getConnection({
+        user: process.env.ORACLE_USER,
+        password: process.env.ORACLE_PASSWORD,
+        connectString: process.env.ORACLE_CONN_STR
+    });
+
+    // Busca eventos que tenham a palavra-chave no título ou descrição, nao tem muito mais lugar pra procurar
+    const result: any = await connection.execute(
+    `SELECT * FROM EVENTS WHERE LOWER(title) LIKE :keyword OR LOWER(desc) LIKE :keyword`,
+    [ `%${keyword.toLowerCase()}%` ]
+    );
+    await connection.close(); 
+
+    if (result.rows.length > 0) {
+        let eventsList = '';
+        
+        // Percorre todos os eventos encontrados e formata as informações
+        for (let i = 0; i < result.rows.length; i++) {
+            const row = result.rows[i];
+            eventsList += `Evento ${i + 1}:
+                        ` +`Título: ${row.TITLE}
+                        ` +`Descrição: ${row.DESC}
+                        ` +`Time 1: ${row.TEAM1}
+                        ` +`Time 2: ${row.TEAM2}
+                        ` +`Data: ${row.DATE}
+                        ` +`Hora: ${row.HOUR}
+
+`;
+        }
+        res.statusCode = 200;
+        res.send(eventsList); // Retorna os eventos encontrados cada um como uma stringzona como ali em cima 
+    } else {
+        res.statusCode = 200;
+        res.send("Nenhum evento foi encontrado que contém essa palvara.");
+    }
+};
 //FAZER as funções que faltam dos eventos aqui
 
 
@@ -202,7 +250,7 @@ export type Wallet = {
 let walletsDatabase: Wallet[] = [];
 
 // Função para adicionar uma carteira ao banco de dados Oracle
-export async function createWallet(email: string): Promise<void> {
+export async function createWallet(email: string): Promise<Wallet> {
     OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
 
     let connection = await OracleDB.getConnection({
@@ -218,10 +266,16 @@ export async function createWallet(email: string): Promise<void> {
     );
 
     await connection.close();
+
+    return {
+        email: email,
+        balance: 0,
+        transactionHistory: []
+    };
 }
 
 // Função para encontrar uma carteira pelo email
-export async function findWallet(email: string): Promise<Wallet | undefined> {
+export async function findWallet(email: string): Promise<Wallet | null> {
     OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
 
     let connection = await OracleDB.getConnection({
@@ -230,7 +284,7 @@ export async function findWallet(email: string): Promise<Wallet | undefined> {
         connectString: process.env.ORACLE_CONN_STR
     });
 
-    let result = await connection.execute(
+    const result: any = await connection.execute(
         'SELECT * FROM WALLETS WHERE email = :email',
         [email]
     );
@@ -245,10 +299,10 @@ export async function findWallet(email: string): Promise<Wallet | undefined> {
             transactionHistory: [] // Carregar histórico de transações se necessário
         };
     }
-    return undefined;
+    return null;
 }
 
-// Rota para adicionar fundos à carteira do usuário (via PIX ou Conta Bancária)
+// Rota para adicionar fundos à carteira do usuário
 export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: Response) => {
     const pEmail = req.get('email');
     const pAmount = Number(req.get('amount'));
@@ -257,18 +311,19 @@ export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: R
     if (pEmail && !isNaN(pAmount) && pAmount > 0 && pTransferType) {
         let wallet = await findWallet(pEmail);
         if (!wallet) {
-            await createWallet(pEmail);
-            wallet = await findWallet(pEmail);
+            wallet = await createWallet(pEmail);
         }
+
         wallet.balance += pAmount;
 
-        OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
+        // Conecta ao banco de dados
         let connection = await OracleDB.getConnection({
             user: process.env.ORACLE_USER,
             password: process.env.ORACLE_PASSWORD,
             connectString: process.env.ORACLE_CONN_STR
         });
 
+        // Atualiza o saldo no banco de dados
         await connection.execute(
             'UPDATE WALLETS SET balance = :balance WHERE email = :email',
             [wallet.balance, pEmail],
@@ -284,13 +339,11 @@ export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: R
 
         await connection.close();
 
-        res.statusCode = 200;
-        res.send(`Fundos adicionados com sucesso via ${pTransferType}. Saldo atual: R$${wallet.balance}`);
+        res.status(200).send(`Fundos adicionados com sucesso via ${pTransferType}. Saldo atual: R$${wallet.balance}`);
     } else {
-        res.statusCode = 400;
-        res.send("Parâmetros inválidos ou faltantes.");
+        res.status(400).send("Parâmetros inválidos ou faltantes.");
     }
-}
+};
 
 // Rota para sacar fundos da carteira do usuário
 export const withdrawFundsRoute: RequestHandler = async (req: Request, res: Response) => {
@@ -305,7 +358,6 @@ export const withdrawFundsRoute: RequestHandler = async (req: Request, res: Resp
             if (wallet.balance >= pAmount) {
                 wallet.balance -= pAmount;
 
-                OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
                 let connection = await OracleDB.getConnection({
                     user: process.env.ORACLE_USER,
                     password: process.env.ORACLE_PASSWORD,
@@ -328,18 +380,14 @@ export const withdrawFundsRoute: RequestHandler = async (req: Request, res: Resp
 
                 await connection.close();
 
-                res.statusCode = 200;
-                res.send(`Saque de R$${pAmount} realizado com sucesso. Saldo atual: R$${wallet.balance}`);
+                res.status(200).send(`Saque de R$${pAmount} realizado com sucesso. Saldo atual: R$${wallet.balance}`);
             } else {
-                res.statusCode = 400;
-                res.send("Saldo insuficiente para realizar o saque.");
+                res.status(400).send("Saldo insuficiente para realizar o saque.");
             }
         } else {
-            res.statusCode = 404;
-            res.send("Wallet não encontrada.");
+            res.status(404).send("Wallet não encontrada.");
         }
     } else {
-        res.statusCode = 400;
-        res.send("Parâmetros inválidos ou faltantes.");
+        res.status(400).send("Parâmetros inválidos ou faltantes.");
     }
-}
+};
