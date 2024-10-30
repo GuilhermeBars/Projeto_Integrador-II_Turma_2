@@ -10,15 +10,9 @@ import {resolve} from 'path';
 dotenv.config({ path: resolve('C:/workspace/outros/.env') });
 
 // Define um namespace para agrupar os manipuladores relacionados a contas e eventos
-export namespace AccountsHandler {
+export namespace EventsHandler {
     
-    // Define o tipo UserAccount, que representa uma conta de usuário
-    export type UserAccount = {
-        name:string; 
-        email:string; 
-        password:string; 
-        birthdate:string; 
-    };
+    
 
     // Define o tipo Event, que representa um evento
     export type Event = {
@@ -27,93 +21,188 @@ export namespace AccountsHandler {
         team1:string; 
         team2:string; 
         date:string; 
-        hour:string; 
+        hour:string;
+        //ID
+        //Status
     }
 
-    // Banco de dados em memória para armazenar as contas de usuário
-    let accountsDatabase: UserAccount[] = [];
+   
 
-    // Banco de dados em memória para armazenar os eventos
-    let eventsDatabase: Event[] = [];
-
-    // Função para salvar um novo evento no banco de dados em memória
-    export function saveNewEvent(ne: Event) : number{
-        eventsDatabase.push(ne); 
-        return eventsDatabase.length; 
-    }
-
-
-
-export const addEventRoute: RequestHandler = (req: Request, res: Response) => {
-    const pTitle = req.get('title'); 
-    const pDesc = req.get('desc'); 
-    const pTeam1 = req.get('team1'); 
+// Rota para adicionar um novo evento
+export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
+    const pTitle = req.get('title');
+    const pDesc = req.get('desc');
+    const pTeam1 = req.get('team1');
     const pTeam2 = req.get('team2');
     const pDate = req.get('date');
-    const pHour = req.get('hour'); 
+    const pHour = req.get('hour');
 
     if (pTitle && pDesc && pTeam1 && pTeam2 && pDate && pHour) {
-        // Cria um novo objeto Event com os dados fornecidos
-        const newEvent: Event = {
-            title: pTitle,
-            desc: pDesc,
-            team1: pTeam1,
-            team2: pTeam2,
-            date: pDate,
-            hour: pHour,
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+
+            // Cria um novo evento no banco de dados
+            await connection.execute(
+                "INSERT INTO EVENTS (eventName, description, team1, team2, eventDate, eventHour, status) VALUES (:title, :desc, :team1, :team2, TO_DATE(:date, 'YYYY-MM-DD'), :hour, Stand-By)",
+                [pTitle, pDesc, pTeam1, pTeam2, pDate, pHour],
+                
+            );
+
+            res.status(200).send(`Novo evento '${pTitle}' adicionado com sucesso.`);
+        } catch (error) {
+            res.status(500).send("Erro ao adicionar novo evento.");
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
         }
-        const ID = saveNewEvent(newEvent); 
-        res.statusCode = 200; 
-        res.send(`Novo evento adicionado. Código: ${ID}`); 
+    } else {
+        res.status(400).send("Parâmetros inválidos ou faltantes.");
     }
+};
 
-    else {
-        res.statusCode = 400; 
-        res.send("Parâmetros inválidos ou faltantes."); 
+// Rota para obter todos os eventos armazenados
+export const getEventsRoute: RequestHandler = async (req: Request, res: Response) => {
+    let connection;
+    try {
+        connection = await OracleDB.getConnection({
+            user: process.env.ORACLE_USER,
+            password: process.env.ORACLE_PASSWORD,
+            connectString: process.env.ORACLE_CONN_STR
+        });
+
+        // Busca todos os eventos do banco de dados
+        const eventsResult: any = await connection.execute(
+            'SELECT * FROM EVENTS'
+        );
+
+        if (eventsResult.rows.length === 0) {
+            res.status(200).send("Nenhum evento encontrado.");
+        } else {
+            let eventsList = '';
+            for (const event of eventsResult.rows) {
+                eventsList += `Evento: ${event.EVENTNAME}
+` +
+                              `Descrição: ${event.DESCRIPTION}
+` +
+                              `Times: ${event.TEAM1} vs ${event.TEAM2}
+` +
+                              `Data: ${event.EVENTDATE} ${event.EVENTHOUR}
+
+`;
+            }
+            res.status(200).send(eventsList);
+        }
+    } catch (error) {
+        res.status(500).send("Erro ao buscar eventos.");
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
     }
-}
+};
 
-// Define a rota para obter todos os eventos armazenados
-export const getEventsRoute: RequestHandler = (req: Request, res: Response) => {
-    if (eventsDatabase.length === 0) { 
-        res.statusCode = 200; 
-        res.send("Nenhum evento encontrado."); 
+// Rota para deletar um evento pelo índice fornecido
+export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {
+    const pEventId = req.get('eventId');
+    
+
+    if (!pEventId) {
+        res.status(400).send("ID do evento não fornecido.");
         return;
     }
 
-    else {
-        let eventsList = ''; 
+    let connection;
+    try {
+        connection = await OracleDB.getConnection({
+            user: process.env.ORACLE_USER,
+            password: process.env.ORACLE_PASSWORD,
+            connectString: process.env.ORACLE_CONN_STR
+        });
 
-        // Itera sobre todos os eventos no banco de dados e formata suas informações
-        for (let i = 0; i < eventsDatabase.length; i++) {
-            eventsList += `Evento ${i+1}: ${eventsDatabase[i].title}\n` +
-                        `Descrição: ${eventsDatabase[i].desc}\n` +
-                        `Data: ${eventsDatabase[i].date} ${eventsDatabase[i].hour}\n\n`;
+        // Deleta o evento com o ID fornecido
+        const result: any = await connection.execute(
+            'DELETE FROM EVENTS WHERE eventId = :eventId',
+            [pEventId],
+        );
+
+        if (result.rowsAffected === 0) {
+            res.status(404).send("Evento não encontrado.");
+        } else {
+            res.status(200).send(`Evento com ID ${pEventId} deletado com sucesso.`);
         }
-    
-        res.statusCode = 200; 
-        res.send(eventsList); 
+    } catch (error) {
+        res.status(500).send("Erro ao deletar evento.");
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
     }
-    
-}
+};
 
-// Define a rota para deletar um evento pelo índice fornecido
-export const deleteEventsRoute: RequestHandler = (req: Request, res: Response) => {
-    const index = Number(req.get('index')) - 1; // Obtém o índice do evento a ser deletado (ajustado para base 0)
+// Rota para avaliar um evento novo
+export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: Response) => {
+    const pEmail = req.get('email');
+    const pEventId = req.get('eventId');
+    const pAction = req.get('action'); // 'approve' ou 'reject'
 
-    if (!isNaN(index) && index >= 0 && index < eventsDatabase.length) { 
-        const deletedEvent = eventsDatabase.splice(index, 1); // Remove o evento do banco de dados
-        res.statusCode = 200; 
-        res.send(`Evento "${deletedEvent[0].title}" deletado com sucesso.`); // Envia a resposta confirmando a exclusão
-    } 
-    
-    else {
-        res.statusCode = 400; 
-        res.send("Índice inválido ou fora do alcance."); 
+    if (!pEmail || !pEventId || !pAction) {
+        res.status(400).send("Parâmetros inválidos ou faltantes.");
+        return;
     }
-}
 
-}
+    let connection;
+    try {
+        connection = await OracleDB.getConnection({
+            user: process.env.ORACLE_USER,
+            password: process.env.ORACLE_PASSWORD,
+            connectString: process.env.ORACLE_CONN_STR
+        });
+
+        // Verifica se o usuário é um moderador no banco de dados
+        const moderatorResult: any = await connection.execute(
+            'SELECT tipo FROM USERS WHERE email = :email',
+            [pEmail]
+        );
+
+        if (moderatorResult.rows.length === 0 || moderatorResult.rows[0].TIPO !== 'moderator') {
+            res.status(403).send("Acesso negado. Apenas moderadores podem avaliar eventos.");
+            return;
+        }
+
+        // Atualiza o status do evento para aprovado ou rejeitado
+        let status;
+        if (pAction === 'approve') {
+            status = 'approved';
+        } else if (pAction === 'reject') {
+            status = 'rejected';
+        } else {
+            res.status(400).send("Ação inválida. Use 'approve' ou 'reject'.");
+            return;
+        }
+
+        await connection.execute(
+            'UPDATE EVENTS SET status = :status WHERE eventId = :eventId',
+            [status, pEventId],
+            { autoCommit: true }
+        );
+
+        res.status(200).send(`Evento ${pEventId} foi ${status} com sucesso.`);
+    } catch (error) {
+        res.status(500).send("Erro ao avaliar o evento.");
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+};
+
+
 
 // Função para buscar eventos por palavra-chave no banco de dados Oracle
 export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
@@ -162,5 +251,6 @@ if (result.rows.length > 0) {
 } else {
     res.statusCode = 200;
     res.send("Nenhum evento foi encontrado que contém essa palvara.");
+}
 }
 };
