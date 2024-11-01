@@ -1,6 +1,8 @@
 import express from "express";
 import {Request, Response, Router} from "express";
-import { AccountsHandler } from "./accounts/accounts";
+import { AccountsHandler } from "./handlers/accounts";
+import { walletHandler } from "./handlers/wallet";
+import { EventsHandler } from "./handlers/events";
 
 const port = 3000; 
 const server = express();
@@ -13,9 +15,17 @@ routes.get('/', (req: Request, res: Response)=>{
 
 routes.put('/signUp', AccountsHandler.createAccountRoute);
 routes.post('/login', AccountsHandler.loginRoute);
-routes.put('/addEvent', AccountsHandler.addEventRoute);
-routes.get('/getEvents', AccountsHandler.getEventsRoute);
-routes.delete('/deleteEvent', AccountsHandler.deleteEventsRoute);
+
+routes.put('/addNewEvent', EventsHandler.addEventRoute);
+routes.get('/getEvents', EventsHandler.getEventsRoute);
+routes.delete('/deleteEvent', EventsHandler.deleteEventsRoute);
+routes.put('/evaluateEvent', EventsHandler.evaluateNewEventRoute);
+routes.get('/searchEvents', EventsHandler.searchEventRoute);
+
+routes.post('/addFunds', walletHandler.addFundsToWalletRoute);
+routes.put('/withdrawFunds', walletHandler.withdrawFundsRoute);
+routes.post('/betOnEvent', walletHandler.betOnEventRoute);
+routes.post('/finishEvent', walletHandler.finishEventRoute);
 
 server.use(routes);
 
