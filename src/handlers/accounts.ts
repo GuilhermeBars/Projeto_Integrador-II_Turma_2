@@ -107,12 +107,15 @@ export namespace AccountsHandler {
                     await connection.execute(
                         "INSERT INTO ACCOUNTS VALUES (SEQ_ACCOUNTS.nextval, :name, :email, :password, :user_type, dbms_random.string('x',32))",
                         { name: pName, email: pEmail, password: pPassword, user_type: pUser },
+                        { autoCommit: true }
                     );                    
 
                     await connection.execute(
-                        "INSERT INTO WALLET (EMAIL, BALANCE) VALUES (:email, 0)",
-                        [pEmail],
+                        "INSERT INTO WALLETS (EMAIL, BALANCE) VALUES (:email, 0)",
+                        { email: pEmail },
+                        { autoCommit: true }
                     );
+
                     res.status(201).send('Nova conta adicionada');
                 } 
                 catch (error) {

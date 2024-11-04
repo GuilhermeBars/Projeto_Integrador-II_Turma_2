@@ -17,14 +17,16 @@ export namespace EventsHandler {
 
 // Rota para adicionar um novo evento
 export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
-    const pTitle = req.get('title');
-    const pDesc = req.get('desc');
+    const pTitle = req.get('event_name');
+    const pDescription = req.get('event_description');
     const pTeam1 = req.get('team1');
     const pTeam2 = req.get('team2');
     const pDate = req.get('date');
     const pHour = req.get('hour');
+    console.log({ pTitle, pDescription, pTeam1, pTeam2, pDate, pHour });
 
-    if (pTitle && pDesc && pTeam1 && pTeam2 && pDate && pHour) {
+
+    if (pTitle && pDescription && pTeam1 && pTeam2 && pDate && pHour) {
         let connection;
         try {
             connection = await OracleDB.getConnection({
@@ -33,15 +35,24 @@ export const addEventRoute: RequestHandler = async (req: Request, res: Response)
                 connectString: process.env.ORACLE_CONN_STR
             });
 
-            // Cria um novo evento no banco de dados
             await connection.execute(
-                "INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRICAO, TEAM1, TEAM2, EVENT_DATE, EVENT_HOUR) VALUES (SEQ_EVENTS.NEXTVAL, :title, :desc, :team1, :team2, TO_DATE(:date, 'YYYY-MM-DD'), :hour)",
-                [pTitle, pDesc, pTeam1, pTeam2, pDate, pHour],
+                `INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRIPTION, TEAM1, TEAM2, EVENT_DATE, EVENT_HOUR) 
+                 VALUES (SEQ_EVENTS.NEXTVAL, :p_event_name, :p_description, :p_team1, :p_team2, TO_DATE(:p_event_date, 'YYYY-MM-DD'), :p_event_hour)`,
+                {
+                    p_event_name: pTitle,
+                    p_description: pDescription,
+                    p_team1: pTeam1,
+                    p_team2: pTeam2,
+                    p_event_date: pDate,
+                    p_event_hour: pHour
+                },
+                { autoCommit: true }
             );
 
             res.status(200).send(`Novo evento '${pTitle}' adicionado com sucesso.`);
-        } catch (error) {
-            res.status(500).send("Erro ao adicionar novo evento.");
+        } catch (error: any) {
+            console.error(error);
+            res.status(500).send(`Erro ao adicionar novo evento: ${error.message}`);
         } finally {
             if (connection) {
                 await connection.close();
@@ -64,8 +75,12 @@ export const getEventsRoute: RequestHandler = async (req: Request, res: Response
 
         // Busca todos os eventos do banco de dados
         const eventsResult: any = await connection.execute(
-            'SELECT * FROM EVENTS'
+            'SELECT * FROM EVENTS',
+            [],
+            { outFormat: OracleDB.OUT_FORMAT_OBJECT }
         );
+
+        console.log(eventsResult.rows);
 
         if (eventsResult.rows.length === 0) {
             res.status(200).send("Nenhum evento encontrado.");
@@ -74,7 +89,7 @@ export const getEventsRoute: RequestHandler = async (req: Request, res: Response
             for (const event of eventsResult.rows) {
                 eventsList += `Evento: ${event.EVENT_NAME}
 ` +
-                              `Descrição: ${event.DESCRICAO}
+                              `Descrição: ${event.DESCRIPTION}
 ` +
                               `Times: ${event.TEAM1} vs ${event.TEAM2}
 ` +
@@ -85,6 +100,7 @@ export const getEventsRoute: RequestHandler = async (req: Request, res: Response
             res.status(200).send(eventsList);
         }
     } catch (error) {
+        console.error('Erro ao buscar eventos:', error);
         res.status(500).send("Erro ao buscar eventos.");
     } finally {
         if (connection) {
@@ -92,6 +108,7 @@ export const getEventsRoute: RequestHandler = async (req: Request, res: Response
         }
     }
 };
+
 
 // Rota para deletar um evento pelo índice fornecido
 export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {
@@ -111,10 +128,10 @@ export const deleteEventsRoute: RequestHandler = async (req: Request, res: Respo
             connectString: process.env.ORACLE_CONN_STR
         });
 
-        // Deleta o evento com o ID fornecido
         const result: any = await connection.execute(
             'DELETE FROM EVENTS WHERE EVENT_ID = :pEventId',
             [pEventId],
+            { autoCommit: true }
         );
 
         if (result.rowsAffected === 0) {
@@ -153,10 +170,11 @@ export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: R
         // Verifica se o usuário é um moderador no banco de dados
         const moderatorResult: any = await connection.execute(
             'SELECT USER_TYPE FROM ACCOUNTS WHERE EMAIL = :pEmail',
-            [pEmail]
+            [pEmail],
+            { outFormat: OracleDB.OUT_FORMAT_OBJECT }
         );
-
-        if (moderatorResult.rows.length === 0 || moderatorResult.rows[0].TIPO !== 'moderator') {
+        
+        if (moderatorResult.rows.length === 0 || moderatorResult.rows[0].USER_TYPE !== 'moderator') {
             res.status(403).send("Acesso negado. Apenas moderadores podem avaliar eventos.");
             return;
         }
@@ -175,6 +193,7 @@ export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: R
         await connection.execute(
             'UPDATE EVENTS SET STATUS_ = :status WHERE EVENT_ID = :pEventId',
             [status, pEventId],
+            { autoCommit: true }
         );
 
         res.status(200).send(`Evento ${pEventId} foi ${status} com sucesso.`);
@@ -191,7 +210,7 @@ export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: R
 
 // Função para buscar eventos por palavra-chave no banco de dados Oracle
 export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
-    const keyword = req.get('keyword'); // Palavra-chave de busca fornecida na requisição
+    const keyword = req.get('keyword');
 
     if (!keyword) {
         res.statusCode = 400;
@@ -201,18 +220,18 @@ export const searchEventRoute: RequestHandler = async (req: Request, res: Respon
 
     OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
 
-    // Conecta ao banco de dados Oracle
     const connection = await OracleDB.getConnection({
         user: process.env.ORACLE_USER,
         password: process.env.ORACLE_PASSWORD,
         connectString: process.env.ORACLE_CONN_STR
     });
 
-    // Busca eventos que tenham a palavra-chave no título ou descrição, nao tem muito mais lugar pra procurar
+    // Busca eventos que tenham a palavra-chave no título ou descrição
     const result: any = await connection.execute(
-        `SELECT * FROM EVENTS WHERE LOWER(EVENT_NAME) LIKE :keyword OR LOWER(DESCRICAO) LIKE :keyword`,
-        [ `%${keyword.toLowerCase()}%` ]
+        `SELECT * FROM EVENTS WHERE LOWER(EVENT_NAME) LIKE :keyword OR LOWER(DESCRIPTION) LIKE :keyword`,
+        [ `%${keyword.toLowerCase()}%`, `%${keyword.toLowerCase()}%` ]
     );
+    
     await connection.close(); 
 
     if (result.rows.length > 0) {
@@ -222,15 +241,16 @@ export const searchEventRoute: RequestHandler = async (req: Request, res: Respon
         for (let i = 0; i < result.rows.length; i++) {
             const row = result.rows[i];
             eventsList += `Evento ${i + 1}:
-                        ` +`Título: ${row.TITLE}
-                        ` +`Descrição: ${row.DESC}
-                        ` +`Time 1: ${row.TEAM1}
-                        ` +`Time 2: ${row.TEAM2}
-                        ` +`Data: ${row.DATE}
-                        ` +`Hora: ${row.HOUR}
-
+                            ` +`Título: ${row.EVENT_NAME}
+                            ` +`Descrição: ${row.DESCRIPTION}
+                            ` +`Time 1: ${row.TEAM1}
+                            ` +`Time 2: ${row.TEAM2}
+                            ` +`Data: ${row.EVENT_DATE}
+                            ` +`Hora: ${row.EVENT_HOUR}
+        
             `;
         }
+        
         res.statusCode = 200;
         res.send(eventsList); // Retorna os eventos encontrados cada um como uma stringzona como ali em cima 
         } 

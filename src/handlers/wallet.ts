@@ -26,6 +26,7 @@ export namespace walletHandler {
         await connection.execute(
             'INSERT INTO WALLETS (EMAIL, BALANCE) VALUES (:email, :balance)',
             [email, 0],
+            { autoCommit: true }
         );
     
         await connection.close();
@@ -120,7 +121,7 @@ export namespace walletHandler {
         const pEmail = req.get('email');
         const pAmount = Number(req.get('amount'));
         const pTransferType = req.get('transferType'); // Tipo de transferência: 'pix' ou 'bank'
-        const pBankDetails = req.body.bankDetails; // Detalhes bancários para transferência bancária
+        //const pBankDetails = req.body.bankDetails;
     
         if (pEmail && !isNaN(pAmount) && pAmount > 0 && pTransferType) {
             let wallet = await findWallet(pEmail);
@@ -158,7 +159,6 @@ export namespace walletHandler {
         const pAmount = Number(req.get('amount'));
         const pTransferType:any = req.get('transferType'); // Tipo de transferência: 'pix' ou 'bank'
         
-    
         if (pEmail && !isNaN(pAmount) && pAmount > 0 ) {
             let wallet = await findWallet(pEmail);
             if (wallet) {
@@ -225,6 +225,7 @@ export namespace walletHandler {
                         await connection.execute(
                             'INSERT INTO BETS (BET_ID, EMAIL, EVENT_ID, BET_AMOUNT, DATE_) VALUES (SEQ_BETS.NEXTVAL, :email, :eventId, :betAmount, SYSDATE)',
                             [pEmail, pEventId, pBetAmount],
+                            { autoCommit: true }
                         );
     
                         res.status(200).send(`Aposta de R$${pBetAmount} realizada com sucesso no evento ${pEventId}. Saldo atual: R$${wallet.balance}`);
@@ -267,10 +268,11 @@ export namespace walletHandler {
                 [pEmail]
             );
     
-            if (moderatorResult.rows.length === 0 || moderatorResult.rows[0].TIPO !== 'moderator') {
+            if (moderatorResult.rows.length === 0 || moderatorResult.rows[0][0] !== 'moderator') {
                 res.status(403).send("Acesso negado. Apenas moderadores podem encerrar eventos.");
                 return;
-            }
+            }            
+
         } catch (error) {
             res.status(500).send("Erro ao verificar as credenciais do usuário.");
             return;
@@ -304,9 +306,8 @@ export namespace walletHandler {
                         const betAmount = bet.BETAMOUNT;
                         let rewardAmount = 0;
     
-                        // Lógica de distribuição dos ganhos
                         if (pResult === 'win') {
-                            rewardAmount = betAmount * 2; // Exemplo: dobra o valor da aposta em caso de vitória
+                            rewardAmount = betAmount * 2;
                         }
     
                         if (rewardAmount > 0) {
@@ -325,11 +326,20 @@ export namespace walletHandler {
                     [pEventId],
                     { autoCommit: true }
                 );
+
+                // Deleta o evento encerrado
+                await connection.execute(
+                    'DELETE FROM EVENTS WHERE EVENT_ID = :eventId',
+                    [pEventId],
+                    { autoCommit: true }
+                );
     
                 res.status(200).send(`Evento ${pEventId} encerrado com sucesso e ganhos distribuídos.`);
             } catch (error) {
+                console.error('Erro ao encerrar o evento:', error);
                 res.status(500).send("Erro ao encerrar o evento.");
-            } finally {
+            }
+            finally {
                 if (connection) {
                     await connection.close();
                 }
