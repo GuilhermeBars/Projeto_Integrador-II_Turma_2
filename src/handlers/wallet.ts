@@ -111,47 +111,70 @@ export namespace walletHandler {
         }
     }
     
-    // Função para gerar chave PIX
-    function generatePixKey(): string {
-        return uuidv4();
-    }
-    
-    // Rota para adicionar fundos à carteira do usuário
-    export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pEmail = req.get('email');
-        const pAmount = Number(req.get('amount'));
-        const pTransferType = req.get('transferType'); // Tipo de transferência: 'pix' ou 'bank'
-        //const pBankDetails = req.body.bankDetails;
-    
-        if (pEmail && !isNaN(pAmount) && pAmount > 0 && pTransferType) {
-            let wallet = await findWallet(pEmail);
-            if (!wallet) {
-                wallet = await createWallet(pEmail);
-            }
-    
-            if (pTransferType === 'bank') {
-                res.status(200).send("Para fazer o depósito, use os seguintes dados bancários: Agência: 0001 Conta: 69265218-3");
-                return;
-            } else if (pTransferType === 'pix') {
-                // Gerar uma chave PIX para o usuário
-                const pixKey = generatePixKey();
-                res.status(200).send(`Para fazer o depósito via PIX, use a chave PIX: ${pixKey}`);
-                return;
-            }
-    
-            // Atualizar saldo após recebimento (simulação)
-            wallet.balance += pAmount;
-    
-            try {
-                await updateWalletBalanceAndRecordTransaction(pEmail, wallet.balance, pTransferType, pAmount);
-                res.status(200).send(`Fundos adicionados com sucesso via ${pTransferType}. Saldo atual: R$${wallet.balance}`);
-            } catch (error) {
-                res.status(500).send("Erro ao processar a transação.");
-            }
-        } else {
-            res.status(400).send("Parâmetros inválidos ou faltantes.");
-        }
+// Rota para depósito de cartao de credito / adicionar fundos à carteira do usuário
+export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: Response) => {
+    const pEmail = req.get('email');
+    const pAmount = Number(req.get('amount'));
+    const pCardNumber = req.get('cardNumber');
+    const pCardName = req.get('cardName');
+    const pCardExpiration = req.get('cardExpiration');
+    const pCardCVV = req.get('cardCVV');
+
+    // Função para validar número do cartão usando Regex
+    const isValidCardNumber = (cardNumber: string) => {
+        const visaRegex = /^4[0-9]{12}(?:[0-9]{3})?$/;
+        const masterCardRegex = /^(5[1-5][0-9]{14}|2(2[2-9][0-9]{13}|[3-6][0-9]{14}|7[01][0-9]{13}|720[0-9]{12}))$/;
+        return visaRegex.test(cardNumber) || masterCardRegex.test(cardNumber);
     };
+
+    // Função para validar a data de expiração (MM/YY)
+    const isValidExpirationDate = (expirationDate: string) => {
+        const [month, year] = expirationDate.split('/').map(Number);
+        if (!month || !year || month < 1 || month > 12) return false;
+
+        const currentDate = new Date();
+        const currentYear = parseInt(currentDate.getFullYear().toString().slice(-2));
+        const currentMonth = currentDate.getMonth() + 1;
+
+        return year > currentYear || (year === currentYear && month >= currentMonth);
+    };
+
+    // Função para validar o CVV (deve ter 3 ou 4 dígitos)
+    const isValidCVV = (cvv: string) => {
+        return /^[0-9]{3,4}$/.test(cvv);
+    };
+
+    if (!pEmail || isNaN(pAmount) || pAmount <= 0) {
+        res.status(400).send("Parâmetros inválidos ou faltantes.");
+        return;
+    }
+
+    if (!pCardNumber || !isValidCardNumber(pCardNumber)) {
+        res.status(400).send("Número do cartão de crédito inválido.");
+        return;
+    }
+
+    if (!pCardExpiration || !isValidExpirationDate(pCardExpiration)) {
+        res.status(400).send("Data de expiração do cartão inválida.");
+        return;
+    }
+
+    if (!pCardCVV || !isValidCVV(pCardCVV)) {
+        res.status(400).send("CVV do cartão inválido.");
+        return;
+    }
+
+    let wallet = await findWallet(pEmail);
+    if (!wallet) {
+        wallet = await createWallet(pEmail);
+    }
+
+    // Atualizar saldo após recebimento (simulação)
+    wallet.balance += pAmount;
+
+    res.status(200).send("Fundos adicionados com sucesso.");
+};
+
     
     // Rota para sacar fundos da carteira do usuário
     export const withdrawFundsRoute: RequestHandler = async (req: Request, res: Response) => {
