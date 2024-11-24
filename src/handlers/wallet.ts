@@ -114,8 +114,8 @@ export namespace walletHandler {
 // Rota para depósito de cartao de credito / adicionar fundos à carteira do usuário
 export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: Response) => {
     const pEmail = req.get('email');
-    const pAmount = Number(req.get('amount'));
-    const pCardNumber = req.get('cardNumber');
+    const pAmount = Number (req.get('amount'));
+    const pCardNumber = Number (req.get('cardNumber'));
     const pCardName = req.get('cardName');
     const pCardExpiration = req.get('cardExpiration');
     const pCardCVV = req.get('cardCVV');
@@ -164,13 +164,16 @@ export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: R
         return;
     }
 
-    let wallet = await findWallet(pEmail);
+    let wallet = await walletHandler.findWallet(pEmail);
     if (!wallet) {
-        wallet = await createWallet(pEmail);
+        wallet = await walletHandler.createWallet(pEmail);
     }
 
-    // Atualizar saldo após recebimento (simulação)
+    // Atualizar saldo após recebimento
     wallet.balance += pAmount;
+
+    // Salvar a carteira atualizada no banco de dados e registrar a transação
+    await walletHandler.updateWalletBalanceAndRecordTransaction(pEmail, wallet.balance, 'Deposito CC', pAmount);
 
     res.status(200).send("Fundos adicionados com sucesso.");
 };
@@ -203,7 +206,7 @@ export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: R
                     }
     
                     try {
-                        await updateWalletBalanceAndRecordTransaction(pEmail, wallet.balance, pTransferType, pAmount);
+                        await updateWalletBalanceAndRecordTransaction(pEmail, wallet.balance, `Saque via ${pTransferType}`, pAmount);
                         res.status(200).send(`Saque de R$${pAmount} realizado com sucesso via ${pTransferType}. Taxa de saque: R$${fee}. Saldo atual: R$${wallet.balance}`);
                     } catch (error) {
                         res.status(500).send("Erro ao processar a transação.");
