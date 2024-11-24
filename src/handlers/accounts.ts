@@ -169,5 +169,5 @@ export namespace AccountsHandler {
         else {
             res.status(400).send("Parâmetros inválidos ou faltantes.");
         }
-    };
+    }
 }
