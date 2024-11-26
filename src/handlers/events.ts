@@ -20,7 +20,7 @@ export namespace EventsHandler {
             from: process.env.EMAIL_USER,
             to: email,
             subject: 'Evento Rejeitado',
-            text: `O evento "${eventTitle}" foi rejeitado. Motivo: ${reason}`
+            text: `O evento "${eventTitle}" foi rejeitado.\nMotivo: ${reason}.`
         };
     
         try {
@@ -33,15 +33,14 @@ export namespace EventsHandler {
 
     // Rota para adicionar um novo evento
     export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pEmail = req.get('user-email')
+        const pEmail = req.get('email')
         const pTitle = req.get('event_name');
         const pDescription = req.get('event_description');
         const pTeam1 = req.get('team1');
         const pTeam2 = req.get('team2');
         const pDate = req.get('date');
         const pHour = req.get('hour');
-        console.log({ pTitle, pDescription, pTeam1, pTeam2, pDate, pHour });
-
+        console.log({ pTitle, pDescription, pTeam1, pTeam2, pDate, pHour, pEmail});
 
         if (pTitle && pDescription && pTeam1 && pTeam2 && pDate && pHour) {
             let connection;
@@ -127,7 +126,6 @@ export namespace EventsHandler {
         }
     };
 
-
     // Rota para deletar um evento pelo índice fornecido
     export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {
         const pEventId = req.get('eventId');
@@ -170,7 +168,8 @@ export namespace EventsHandler {
     export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: Response) => {
         const pEmail = req.get('email');
         const pEventId = req.get('eventId');
-        const pAction = req.get('action'); // 'approve' ou 'reject'
+        const pAction = req.get('action');
+        const pReason = req.get('reason')
     
         if (!pEmail || !pEventId || !pAction) {
             res.status(400).send("Parâmetros inválidos ou faltantes.");
@@ -185,35 +184,39 @@ export namespace EventsHandler {
                 connectString: process.env.ORACLE_CONN_STR
             });
     
-            // Verifica se o usuário é um moderador no banco de dados
-            console.log('Email recebido:', pEmail); // Para debugar o email
             const moderatorResult: any = await connection.execute(
-                'SELECT USER_TYPE FROM ACCOUNTS WHERE EMAIL = :pEmail',
+                `SELECT USER_TYPE FROM ACCOUNTS WHERE EMAIL = :pEmail`,
                 [pEmail],
                 { outFormat: OracleDB.OUT_FORMAT_OBJECT }
             );
-    
-            console.log(moderatorResult.rows);
     
             if (moderatorResult.rows.length === 0 || moderatorResult.rows[0].USER_TYPE !== 'moderator') {
                 res.status(403).send("Acesso negado. Apenas moderadores podem avaliar eventos.");
                 return;
             };
     
-            const emailUser: any = await connection.execute(
-                'SELECT EMAIL FROM EVENTS WHERE EVENT_ID = :pEventId',
+            const eventDetails: any = await connection.execute(
+                'SELECT EMAIL, EVENT_NAME FROM EVENTS WHERE EVENT_ID = :pEventId',
                 [pEventId],
                 { outFormat: OracleDB.OUT_FORMAT_OBJECT }
             );
             
-            // Atualiza o status do evento para aprovado ou rejeitado
+            let rejectionReason: any = "";
+            if (pReason === "1") {
+                rejectionReason = "Texto confuso";
+            } else if (pReason === "2") {
+                rejectionReason = "Texto inapropriado";
+            } else if (pReason === "3") {
+                rejectionReason = "Não respeita a política de privacidade e/ou termos de uso da plataforma";
+            } else {
+                rejectionReason = pReason;
+            }
+
             let status;
-            let rejectionReason = "";
             if (pAction === 'approve') {
                 status = 'approved';
             } else if (pAction === 'reject') {
                 status = 'rejected';
-                rejectionReason = req.get('reason') || 'não especificado';
             } else {
                 res.status(400).send("Ação inválida. Use 'approve' ou 'reject'.");
                 return;
@@ -226,7 +229,7 @@ export namespace EventsHandler {
             );
     
             if (status === 'rejected') {
-                await sendRejectionEmail(emailUser, `Evento com ID ${pEventId}`, rejectionReason);
+                await sendRejectionEmail(eventDetails.rows[0].EMAIL, eventDetails.rows[0].EVENT_NAME, rejectionReason);
             }
     
             res.status(200).send(`Evento ${pEventId} foi ${status} com sucesso.`);
@@ -240,11 +243,8 @@ export namespace EventsHandler {
                 await connection.close();
             }
         }
-    };
+    }
     
-
-
-
     // Função para buscar eventos por palavra-chave no banco de dados Oracle
     export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
         const keyword = req.get('keyword');
@@ -265,7 +265,7 @@ export namespace EventsHandler {
 
         // Busca eventos que tenham a palavra-chave no título ou descrição
         const result: any = await connection.execute(
-            `SELECT * FROM EVENTS WHERE LOWER(EVENT_NAME) LIKE :keyword OR LOWER(DESCRIPTION) LIKE :keyword`,
+            `SELECT * FROM EVENTS WHERE LOWER(EVENT_NAME) LIKE :keyword OR LOWER(DESCRICAO) LIKE :keyword`,
             [ `%${keyword.toLowerCase()}%`, `%${keyword.toLowerCase()}%` ]
         );
         
@@ -294,7 +294,7 @@ export namespace EventsHandler {
             
             else {
                 res.statusCode = 200;
-                res.send("Nenhum evento foi encontrado que contém essa palvara.");
+                res.send("Nenhum evento foi encontrado que contém essa palavra.");
             }
-        }
+    }
 };

@@ -147,8 +147,8 @@ export namespace AccountsHandler {
                     );
 
                     await connection.execute(
-                        "INSERT INTO WALLETS (EMAIL, BALANCE) VALUES (:email, 0)",
-                        { email: pEmail },
+                        "INSERT INTO WALLETS (USER_ID, BALANCE) VALUES (SEQ_ACCOUNTS.CURRVAL, 0)",
+                        [],
                         { autoCommit: true }
                     );
 
