@@ -3,10 +3,19 @@ import {Request, Response, Router} from "express";
 import { AccountsHandler } from "./handlers/accounts";
 import { walletHandler } from "./handlers/wallet";
 import { EventsHandler } from "./handlers/events";
+import path from "path"; // Para manipulação de caminhos
+
+
+// Middleware para servir arquivos estáticos
 
 const port = 3000; 
 const server = express();
 const routes = Router();
+
+server.use(express.json());
+
+server.use(express.static(path.join("C:/Users/Administrator/Documents/GitHub/Projeto_Integrador-II_Turma_2/frontend"))); // Certifique-se de que o caminho está correto
+
 
 routes.get('/', (req: Request, res: Response)=>{
     res.statusCode = 403;
