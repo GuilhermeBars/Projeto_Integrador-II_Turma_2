@@ -52,22 +52,20 @@ export namespace AccountsHandler {
     }
 
     export const loginRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pEmail = req.get('email'); 
-        const pPassword = req.get('password'); 
-
+        const { email: pEmail, password: pPassword } = req.body; // Extrai email e password do corpo da requisição
+    
         if (pEmail && pPassword) {
             const token = await login(pEmail, pPassword);
-
+    
             if (token) {
                 res.status(200).send(`Login realizado. Token: ${token}`);
-            } 
-            else {
+            } else {
                 res.status(401).send('Credenciais inválidas.');
             }
         } else {
             res.status(400).send('Requisição inválida - Parâmetros faltando.');
         }
-    }
+    };    
 
     export async function verifyEmail(email: string): Promise<boolean> {
         const connection:any = await connectOracle();
@@ -92,11 +90,7 @@ export namespace AccountsHandler {
 
     
     export const createAccountRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pName = req.get('name');
-        const pEmail = req.get('email');
-        const pPassword = req.get('password');
-        const pUser = "user";
-        const pBirthdate = req.get('birthdate');
+        const {name: pName, email: pEmail, password: pPassword, birthdate: pBirthdate} = req.body;
 
         if (pName && pEmail && pPassword && pBirthdate) {
             const user_year = Number(pBirthdate.substring(0, 4)); // Ano
@@ -142,7 +136,7 @@ export namespace AccountsHandler {
                 try {
                     await connection.execute(
                         "INSERT INTO ACCOUNTS VALUES (SEQ_ACCOUNTS.nextval, :name, :email, :password, :user_type, dbms_random.string('x',32), :birthdate)",
-                        { name: pName, email: pEmail, password: pPassword, user_type: pUser, birthdate: birthDate },
+                        { name: pName, email: pEmail, password: pPassword, user_type: "user", birthdate: birthDate },
                         { autoCommit: true }
                     );
 

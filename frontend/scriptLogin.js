@@ -9,13 +9,16 @@ async function handleLogin(event) {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email, password }) // Enviando no body o objeto com email e password
+            body: JSON.stringify({ email, password })
         });
 
         if (response.ok) {
             const token = await response.text();
             alert(`Login bem-sucedido! Token: ${token}`);
-            // Redirecionar ou salvar o token no localStorage/sessionStorage
+
+            sessionStorage.setItem("authToken", token); 
+
+            window.location.href = "/index.html";
         } else {
             const error = await response.text();
             alert(`Erro ao logar: ${error}`);
