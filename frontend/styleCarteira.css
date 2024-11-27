@@ -50,7 +50,7 @@ a:hover{
 .coldep{ 
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
     width: 320px;
-    height:450px;
+    height:500px;
     background-color: white;
     margin: 20px;
     background-color: #18171f;
@@ -74,7 +74,7 @@ a:hover{
 }
 .coltran{ 
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    width: 320px;
+    width: 450px;
     height:450px;
     background-color: white;
     margin: 20px;
