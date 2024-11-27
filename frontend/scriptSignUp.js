@@ -2,10 +2,10 @@ document.getElementById('signUpForm').addEventListener('submit', async (event) =
     event.preventDefault(); // Previne o envio padrão do formulário
 
     // Captura os dados do formulário
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    const birthdate = document.getElementById('birthdate').value;
+    const name = document.getElementById('nameInput').value;
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const birthdate = document.getElementById('birthdateInput').value;
 
     try {
         // Envia os dados para o backend
