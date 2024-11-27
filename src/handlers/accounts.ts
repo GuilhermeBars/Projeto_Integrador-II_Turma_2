@@ -90,7 +90,8 @@ export namespace AccountsHandler {
                     res.status(200).json({
                         message: 'Login realizado com sucesso.',
                         token: token,
-                        balance: balance
+                        balance: balance,
+                        email: pEmail
                     });
                 } else {
                     res.status(401).send('Credenciais inválidas.');

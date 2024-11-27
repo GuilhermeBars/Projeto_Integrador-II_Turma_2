@@ -33,11 +33,11 @@ export namespace EventsHandler {
 
     // Rota para adicionar um novo evento
     export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
-        const { email, event_name, event_description, team1, team2, date1, hour1, date2, hour2, categoria } = req.body;
+        const { email, event_name, event_description, team1, team2, date1, date2, categoria } = req.body;
 
         //console.log({ pTitle, pDescription, pTeam1, pTeam2, pEmail, pCategoria});
 
-        if (event_name && event_description && team1 && team2 && date1 && hour1 && date2 && hour2 && email && categoria) {
+        if (event_name && event_description && team1 && team2 && date1 && date2 && email && categoria) {
             let connection;
             try {
                 connection = await OracleDB.getConnection({
@@ -47,9 +47,9 @@ export namespace EventsHandler {
                 });
 
                 await connection.execute(
-                    `INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRICAO, TEAM1, TEAM2, EVENT_DATE_INICIO, EVENT_DATE_FIM, EVENT_HOUR_INICIO, EVENT_HOUR_FIM, EMAIL, CATEGORIA) 
+                    `INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRICAO, TEAM1, TEAM2, EVENT_DATE_INICIO, EVENT_DATE_FIM, EMAIL, CATEGORIA) 
                     VALUES (SEQ_EVENTS.NEXTVAL, :p_event_name, :p_description, :p_team1, :p_team2,
-                     TO_DATE(:p_date_inicio, 'YYYY-MM-DD'), TO_DATE(:p_date_fim, 'YYYY-MM-DD'), :p_hour_inicio, :p_hour_fim, :p_user_email, :p_categoria)`,
+                     TO_DATE(:p_date_inicio, 'YYYY-MM-DD'), TO_DATE(:p_date_fim, 'YYYY-MM-DD'), :p_user_email, :p_categoria)`,
                     {
                         p_event_name: event_name,
                         p_description: event_description,
@@ -57,8 +57,6 @@ export namespace EventsHandler {
                         p_team2: team2,
                         p_date_inicio: date1,
                         p_date_fim: date2,
-                        p_hour_inicio: hour1,
-                        p_hour_fim: hour2,
                         p_user_email: email,
                         p_categoria: categoria
                     },

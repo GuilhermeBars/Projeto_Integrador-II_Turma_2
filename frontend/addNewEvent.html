@@ -42,7 +42,6 @@
             
               <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
             </svg></button>
-        
           </div>  
         <div>
           <button class="profile" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
@@ -52,41 +51,7 @@
         </div>
       </nav>
    
-    </nav>
-
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal22" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="btn" style="background-color: #ed1c24; color: white; border: none;" onclick="adicionarevento()">Adicionar evento</button>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <input type="text" id="titleEvent" class="form-control my-2" placeholder="Titulo"
-              aria-label="Username" aria-describedby="basic-addon1">
-              <input type="text" id="descEvent" class="form-control my-2" placeholder="Descrição"
-              aria-label="Username" aria-describedby="basic-addon1">
-            <input type="date" id="date1" class="form-control my-2" placeholder="Data de inicio"
-              aria-label="Username" aria-describedby="basic-addon1">
-            <input type="date" id="date2" class="form-control my-2" placeholder="Data final"
-              aria-label="Username" aria-describedby="basic-addon1">
-              <input type="text" id="category" class="form-control my-2" placeholder="Categoria"
-              aria-label="Username" aria-describedby="basic-addon1">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            <button type="button" class="btn" style="background-color: #ed1c24; color: white; border: none;" onclick="adicionarevento()">Adicionar evento</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-   
-      <tbody>
-       
-      </tbody>
-    </table>
+    </nav> 
 
     <div class="card my-4">
       <div class="card-header text-white" style="background-color: #ed1c24;">
@@ -133,33 +98,6 @@
         </form>
       </div>
     </div>
-    
-
-
-
-<!--MODAL FILTRO-->
-<div class="modal fade" id="filterEventModal" tabindex="-1" aria-labelledby="filterEventModal" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="filterEventModal">Filtrar evento</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div class="modalContainer"><p>Categorias:</p>
-          <div class="form-check text-start mt-2 "><input type="checkbox" class="form-check-input" id="flexCheckDefault"/><label class="form-check-label" for="flexCheckDefault">Esportes</label></div>
-          <div class="form-check text-start mt-2 "><input type="checkbox" class="form-check-input" id="flexCheckDefault"/><label class="form-check-label" for="flexCheckDefault">Catástrofes</label></div>
-          <div class="form-check text-start mt-2 "><input type="checkbox" class="form-check-input" id="flexCheckDefault"/><label class="form-check-label" for="flexCheckDefault">Eleições</label></div>
-          <div class="form-check text-start mt-2 "><input type="checkbox" class="form-check-input" id="flexCheckDefault"/><label class="form-check-label" for="flexCheckDefault">Bolsa de valores</label></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
