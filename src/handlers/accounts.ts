@@ -2,6 +2,7 @@ import { Request, RequestHandler, Response } from "express";
 import OracleDB from "oracledb"; 
 import dotenv from 'dotenv'; 
 import { resolve } from 'path'; 
+import { get } from "http";
 
 dotenv.config({ path: resolve('C:/workspace/outros/.env') });
 
@@ -27,23 +28,47 @@ export namespace AccountsHandler {
         password: string; 
     };
 
-    async function login(email: string, password: string): Promise<string | undefined> {
-        const connection:any = await connectOracle();
+    async function login(email: string, password: string): Promise<{ token: string, user_id: string } | undefined> {
+        const connection: any = await connectOracle();
         OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
-
+    
         try {
             const result = await connection.execute(
-                'SELECT TOKEN FROM ACCOUNTS WHERE EMAIL = :email AND PASSWORD_ = :password',
+                'SELECT TOKEN, ID FROM ACCOUNTS WHERE EMAIL = :email AND PASSWORD_ = :password',
                 [email, password]
             );
-
+    
             if (result.rows && result.rows.length > 0) {
-                return result.rows[0].TOKEN;
+                return { token: result.rows[0].TOKEN, user_id: result.rows[0].ID };
             }
             return undefined;
         } 
         catch (error) {
             console.error('Erro ao realizar login:', error);
+            return undefined;
+        }
+        finally {
+            await connection.close();
+        }
+    }    
+
+    async function getBalance(user_id: string): Promise<string | undefined> {
+        const connection: any = await connectOracle();
+        OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
+
+        try {
+            const result = await connection.execute(
+                'SELECT BALANCE FROM WALLETS WHERE USER_ID = :user_id',
+                [user_id]
+            );
+
+            if (result.rows && result.rows.length > 0) {
+                return result.rows[0].BALANCE;
+            }
+            return undefined;
+        } 
+        catch (error) {
+            console.error('Erro ao obter saldo da carteira:', error);
             return undefined;
         }
         finally {
@@ -55,17 +80,28 @@ export namespace AccountsHandler {
         const { email: pEmail, password: pPassword } = req.body; // Extrai email e password do corpo da requisição
     
         if (pEmail && pPassword) {
-            const token = await login(pEmail, pPassword);
+            const loginResult = await login(pEmail, pPassword);
     
-            if (token) {
-                res.status(200).send(`Login realizado. Token: ${token}`);
+            if (loginResult) {
+                const { token, user_id } = loginResult;
+                const balance = await getBalance(user_id); // Busca o balance do usuário
+    
+                if (token) {
+                    res.status(200).json({
+                        message: 'Login realizado com sucesso.',
+                        token: token,
+                        balance: balance
+                    });
+                } else {
+                    res.status(401).send('Credenciais inválidas.');
+                }
             } else {
                 res.status(401).send('Credenciais inválidas.');
             }
         } else {
             res.status(400).send('Requisição inválida - Parâmetros faltando.');
         }
-    };    
+    };
 
     export async function verifyEmail(email: string): Promise<boolean> {
         const connection:any = await connectOracle();

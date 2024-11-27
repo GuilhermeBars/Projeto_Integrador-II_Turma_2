@@ -33,16 +33,11 @@ export namespace EventsHandler {
 
     // Rota para adicionar um novo evento
     export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pEmail = req.get('email')
-        const pTitle = req.get('event_name');
-        const pDescription = req.get('event_description');
-        const pTeam1 = req.get('team1');
-        const pTeam2 = req.get('team2');
-        const pDate = req.get('date');
-        const pHour = req.get('hour');
-        console.log({ pTitle, pDescription, pTeam1, pTeam2, pDate, pHour, pEmail});
+        const { email, event_name, event_description, team1, team2, date1, hour1, date2, hour2, categoria } = req.body;
 
-        if (pTitle && pDescription && pTeam1 && pTeam2 && pDate && pHour) {
+        //console.log({ pTitle, pDescription, pTeam1, pTeam2, pEmail, pCategoria});
+
+        if (event_name && event_description && team1 && team2 && date1 && hour1 && date2 && hour2 && email && categoria) {
             let connection;
             try {
                 connection = await OracleDB.getConnection({
@@ -52,21 +47,25 @@ export namespace EventsHandler {
                 });
 
                 await connection.execute(
-                    `INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRICAO, TEAM1, TEAM2, EVENT_DATE, EVENT_HOUR, EMAIL) 
-                    VALUES (SEQ_EVENTS.NEXTVAL, :p_event_name, :p_description, :p_team1, :p_team2, TO_DATE(:p_event_date, 'YYYY-MM-DD'), :p_event_hour, :p_user_email)`,
+                    `INSERT INTO EVENTS (EVENT_ID, EVENT_NAME, DESCRICAO, TEAM1, TEAM2, EVENT_DATE_INICIO, EVENT_DATE_FIM, EVENT_HOUR_INICIO, EVENT_HOUR_FIM, EMAIL, CATEGORIA) 
+                    VALUES (SEQ_EVENTS.NEXTVAL, :p_event_name, :p_description, :p_team1, :p_team2,
+                     TO_DATE(:p_date_inicio, 'YYYY-MM-DD'), TO_DATE(:p_date_fim, 'YYYY-MM-DD'), :p_hour_inicio, :p_hour_fim, :p_user_email, :p_categoria)`,
                     {
-                        p_event_name: pTitle,
-                        p_description: pDescription,
-                        p_team1: pTeam1,
-                        p_team2: pTeam2,
-                        p_event_date: pDate,
-                        p_event_hour: pHour,
-                        p_user_email: pEmail
+                        p_event_name: event_name,
+                        p_description: event_description,
+                        p_team1: team1,
+                        p_team2: team2,
+                        p_date_inicio: date1,
+                        p_date_fim: date2,
+                        p_hour_inicio: hour1,
+                        p_hour_fim: hour2,
+                        p_user_email: email,
+                        p_categoria: categoria
                     },
                     { autoCommit: true }
                 );
 
-                res.status(200).send(`Novo evento '${pTitle}' adicionado com sucesso.`);
+                res.status(200).send(`Novo evento '${event_name}' enviado com sucesso.`);
             } catch (error: any) {
                 console.error(error);
                 res.status(500).send(`Erro ao adicionar novo evento: ${error.message}`);
@@ -89,42 +88,29 @@ export namespace EventsHandler {
                 password: process.env.ORACLE_PASSWORD,
                 connectString: process.env.ORACLE_CONN_STR
             });
-
+    
             // Busca todos os eventos do banco de dados
             const eventsResult: any = await connection.execute(
-                'SELECT * FROM EVENTS',
+                "SELECT * FROM EVENTS WHERE STATUS_ = 'approved'",
                 [],
                 { outFormat: OracleDB.OUT_FORMAT_OBJECT }
             );
-
-            console.log(eventsResult.rows);
-
+    
             if (eventsResult.rows.length === 0) {
-                res.status(200).send("Nenhum evento encontrado.");
+                res.status(200).json({ message: "Nenhum evento encontrado." });
             } else {
-                let eventsList = '';
-                for (const event of eventsResult.rows) {
-                    eventsList += `Evento: ${event.EVENT_NAME}
-    ` +
-                                `Descrição: ${event.DESCRICAO}
-    ` +
-                                `Times: ${event.TEAM1} vs ${event.TEAM2}
-    ` +
-                                `Data: ${event.EVENT_DATE} ${event.EVENT_HOUR}
-
-    `;
-                }
-                res.status(200).send(eventsList);
+                res.status(200).json({ events: eventsResult.rows });
             }
         } catch (error) {
             console.error('Erro ao buscar eventos:', error);
-            res.status(500).send("Erro ao buscar eventos.");
+            res.status(500).json({ message: "Erro ao buscar eventos." });
         } finally {
             if (connection) {
                 await connection.close();
             }
         }
     };
+    
 
     // Rota para deletar um evento pelo índice fornecido
     export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {

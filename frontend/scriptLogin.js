@@ -13,17 +13,23 @@ async function handleLogin(event) {
         });
 
         if (response.ok) {
-            const token = await response.text();
-            alert(`Login bem-sucedido! Token: ${token}`);
+            const data = await response.json();
 
-            sessionStorage.setItem("authToken", token); 
+            const token = data.token;
+            const balance = data.balance;
 
-            window.location.href = "/index.html";
+            alert(`Login bem-sucedido! Token: ${token}, Saldo: ${balance}`);
+
+            sessionStorage.setItem("authToken", token);
+            sessionStorage.setItem("balance", balance);
+
+            window.location.href = "/indexaftertoken.html";
         } else {
             const error = await response.text();
             alert(`Erro ao logar: ${error}`);
         }
     } catch (error) {
         console.error("Erro na requisição:", error);
+        alert("Erro na requisição. Tente novamente mais tarde.");
     }
 }

@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="styleEvents.css">    
-  <title>Thony Bet</title>
+  <title>Bootstrap demo</title>
 </head>
 
 <body>
@@ -35,16 +35,13 @@
     
       <nav class="navbar bg-body pt-3 barracima">
         <div class="carteira"><form class="d-flex" role="search">
-          <input class="form-control border-2 border-danger" type="search" style="background-color: transparent;" placeholder="Search"
-            aria-label="Search">
-          <button class="btn btn-outline-dark  border-2 border-danger "  type="submit" ><svg
-              xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" class="bi bi-search"
-              viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" /></svg></button>
-            <button class="btn btn-outline-dark border-2 border-danger" style="color:white"  type="button" data-bs-toggle="modal" data-bs-target="#filterEventModal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+          
+          
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" /></svg></button>
+            
               <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
             </svg></button>
-        </form><label class="cash">R$ 0000,00</label><button class="botao" type="button" data-bs-toggle="modal"
-          data-bs-target="#exampleModal">Carteira</button> 
+        
           </div>  
         <div>
           <button class="profile" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
@@ -56,27 +53,96 @@
    
     </nav>
 
-    <table class="table" id="tableEvent">
-      <tr>
-        <th>Título</th>
-        <th>Descrição</th>
-        <th>Data início</th>
-        <th>Hora início</th> 
-        <th>Data fim</th>
-        <th>Hora fim</th>
-        <th>Categoria</th>
-        <th>
-          <button class="newEventBox" type="button" style="width: 30px; height:30px;" data-bs-toggle="modal"
-            data-bs-target="#exampleModal22">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus"
-              viewBox="0 0 16 16">
-              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
-            </svg>
-          </button>
-        </th>
-      </tr>
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal22" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="btn" style="background-color: #ed1c24; color: white; border: none;" onclick="adicionarevento()">Adicionar evento</button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="text" id="titleEvent" class="form-control my-2" placeholder="Titulo"
+              aria-label="Username" aria-describedby="basic-addon1">
+              <input type="text" id="descEvent" class="form-control my-2" placeholder="Descrição"
+              aria-label="Username" aria-describedby="basic-addon1">
+            <input type="date" id="date1" class="form-control my-2" placeholder="Data de inicio"
+              aria-label="Username" aria-describedby="basic-addon1">
+            <input type="date" id="date2" class="form-control my-2" placeholder="Data final"
+              aria-label="Username" aria-describedby="basic-addon1">
+              <input type="text" id="category" class="form-control my-2" placeholder="Categoria"
+              aria-label="Username" aria-describedby="basic-addon1">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn" style="background-color: #ed1c24; color: white; border: none;" onclick="adicionarevento()">Adicionar evento</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+   
+      <tbody>
+       
+      </tbody>
     </table>
+
+    <div class="card my-4">
+      <div class="card-header text-white" style="background-color: #ed1c24;">
+        Adicionar Novo Evento
+      </div>
+      <div class="card-body">
+        <form id="eventForm">
+          <div class="mb-3">
+            <label for="titleEvent" class="form-label">Título do Evento</label>
+            <input type="text" class="form-control" id="titleEvent" placeholder="Digite o título do evento" required>
+          </div>
+          <div class="mb-3">
+            <label for="descEvent" class="form-label">Descrição</label>
+            <textarea class="form-control" id="descEvent" rows="3" placeholder="Digite a descrição do evento" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="date1" class="form-label">Data de Início</label>
+            <input type="date" class="form-control" id="date1" required>
+          </div>
+          <div class="mb-3">
+            <label for="timeStart" class="form-label">Horário de Início</label>
+            <input type="time" class="form-control" id="timeStart" required>
+          </div>
+          <div class="mb-3">
+            <label for="date2" class="form-label">Data de Término</label>
+            <input type="date" class="form-control" id="date2" required>
+          </div>
+          <div class="mb-3">
+            <label for="timeEnd" class="form-label">Horário de Término</label>
+            <input type="time" class="form-control" id="timeEnd" required>
+          </div>
+          <div class="mb-3">
+            <label for="category" class="form-label">Categoria</label>
+            <select class="form-select" id="category" required>
+              <option value="" selected disabled>Escolha uma categoria</option>
+              <option value="Esportes">Esportes</option>
+              <option value="Catastrofes">Catástrofes</option>
+              <option value="Eleicoes">Eleições</option>
+              <option value="Bolsa de Valores">Bolsa de Valores</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="time1" class="form-label">Time 1</label>
+            <input type="text" class="form-control" id="time1" placeholder="Nome do primeiro time" required>
+          </div>
+          <div class="mb-3">
+            <label for="time2" class="form-label">Time 2</label>
+            <input type="text" class="form-control" id="time2" placeholder="Nome do segundo time" required>
+          </div>
+          <button type="button" id="addEventBtn" class="btn" style="background-color: #ed1c24; color: white; border: none;">Adicionar Evento</button>
+
+        </form>
+      </div>
+    </div>
     
+
+
 
 <!--MODAL FILTRO-->
 <div class="modal fade" id="filterEventModal" tabindex="-1" aria-labelledby="filterEventModal" aria-hidden="true">
@@ -109,7 +175,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
     integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
     crossorigin="anonymous"></script>
-  <script script src="scriptEvents.js"> </script>
+  <script script src="scriptAddEvent.js"> </script>
   </div>
 </body>
 
