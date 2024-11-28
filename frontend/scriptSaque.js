@@ -7,13 +7,12 @@ document.addEventListener("DOMContentLoaded", async function () {
         return;
     }
 
-    const addEventButton = document.getElementById("buttonWithdraw");
+    const withdrawButton = document.getElementById("buttonWithdraw");
     const saqueValor = document.getElementById("saqueValor");
     const category = document.getElementById("category");
     const dynamicFields = document.getElementById("dynamicFields");
 
-    // Inicializa o botão desativado
-    addEventButton.setAttribute("disabled", "disabled");
+    withdrawButton.setAttribute("disabled", "disabled");
 
     // Função para validar os campos
     function validateFields() {
@@ -37,9 +36,9 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Atualiza o estado do botão
         if (isValid) {
-            addEventButton.removeAttribute("disabled");
+            withdrawButton.removeAttribute("disabled");
         } else {
-            addEventButton.setAttribute("disabled", "disabled");
+            withdrawButton.setAttribute("disabled", "disabled");
         }
     }
 
@@ -88,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     saqueValor.addEventListener("input", validateFields);
 
     // Evento de clique no botão de saque
-    addEventButton.addEventListener("click", async function () {
+    withdrawButton.addEventListener("click", async function () {
         const valor = saqueValor.value.trim();
         const method = category.value;
         const pixKey = document.getElementById("pixKey")?.value.trim();

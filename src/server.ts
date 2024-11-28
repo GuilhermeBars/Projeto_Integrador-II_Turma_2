@@ -27,11 +27,14 @@ routes.get('/getEvents', EventsHandler.getEventsRoute);
 routes.delete('/deleteEvent', EventsHandler.deleteEventsRoute);
 routes.put('/evaluateEvent', EventsHandler.evaluateNewEventRoute);
 routes.get('/searchEvents', EventsHandler.searchEventRoute);
+routes.get('/eventMaisApostado', EventsHandler.eventMaisApostado);
+routes.get('/eventMaisProximo', EventsHandler.eventMaisProximo);
 
 routes.post('/addFunds', walletHandler.addFundsToWalletRoute);
 routes.put('/withdrawFunds', walletHandler.withdrawFundsRoute);
 routes.post('/betOnEvent', walletHandler.betOnEventRoute);
 routes.post('/finishEvent', walletHandler.finishEventRoute);
+routes.post('/transactions', walletHandler.getTransactionHistoryRoute);
 
 server.use(routes);
 

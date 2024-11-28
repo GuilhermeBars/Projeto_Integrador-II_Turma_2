@@ -279,4 +279,85 @@ export namespace EventsHandler {
                 res.send("Nenhum evento foi encontrado que contém essa palavra.");
             }
     }
+
+    export const eventMaisApostado: RequestHandler = async (req: Request, res: Response) => {
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+    
+            const eventsResult: any = await connection.execute(
+                `SELECT 
+                    b.EVENT_ID, 
+                    COUNT(*) AS TOTAL_BETS
+                FROM 
+                    BETS b
+                JOIN 
+                    EVENTS e ON b.EVENT_ID = e.EVENT_ID
+                WHERE 
+                    e.STATUS_ = 'approved'
+                GROUP BY 
+                    b.EVENT_ID
+                ORDER BY 
+                    TOTAL_BETS DESC`,
+                [],
+                { outFormat: OracleDB.OUT_FORMAT_OBJECT }
+            );
+    
+            if (eventsResult.rows.length === 0) {
+                res.status(200).json({ message: "Nenhum evento encontrado." });
+            } else {
+                res.status(200).json({ events: eventsResult.rows[0] });
+            }
+        } catch (error) {
+            console.error('Erro ao buscar eventos:', error);
+            res.status(500).json({ message: "Erro ao buscar eventos." });
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
+        }
+    };
+
+    export const eventMaisProximo: RequestHandler = async (req: Request, res: Response) => {
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+    
+            const eventResult: any = await connection.execute(
+                `SELECT 
+                    e.EVENT_ID
+                FROM 
+                    EVENTS e
+                WHERE 
+                    e.STATUS_ = 'approved' 
+                ORDER BY 
+                    e.EVENT_DATE_FIM - SYSDATE ASC`,
+                [],
+                { outFormat: OracleDB.OUT_FORMAT_OBJECT }
+            );
+    
+            if (eventResult.rows.length === 0) {
+                res.status(200).json({ message: "Nenhum evento encontrado." });
+            } else {
+                res.status(200).json({ event: eventResult.rows[0] });
+            }
+        } catch (error) {
+            console.error('Erro ao buscar evento mais próximo:', error);
+            res.status(500).json({ message: "Erro ao buscar evento." });
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
+        }
+    };
+    
+    
 };

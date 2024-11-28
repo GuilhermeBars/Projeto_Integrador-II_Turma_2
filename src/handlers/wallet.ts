@@ -166,10 +166,7 @@ export namespace walletHandler {
     
     // Rota para apostar em um evento
     export const betOnEventRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pUserId = req.get('userId');
-        const pEventId = req.get('eventId');
-        const pBetAmount = Number(req.get('betAmount'));
-        const pBetTeam = req.get('team');
+        const { userId: pUserId, eventId: pEventId, betAmount: pBetAmount, team: pBetTeam } = req.body;
     
         if (pUserId && pEventId && !isNaN(pBetAmount) && pBetAmount > 0) {
             let connection;
@@ -198,6 +195,12 @@ export namespace walletHandler {
                     await connection.execute(
                         'UPDATE WALLETS SET BALANCE = :balance WHERE USER_ID = :user_id',
                         [(balance-pBetAmount), pUserId],
+                        { autoCommit: true }
+                    );
+
+                    await connection.execute(
+                        'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE)',
+                        [pUserId, "bet", pBetAmount],
                         { autoCommit: true }
                     );
                 }
@@ -283,6 +286,47 @@ export namespace walletHandler {
             res.status(500).send("Erro interno ao encerrar o evento.");
         } finally {
             if (connection) await connection.close();
+        }
+    };
+
+    export const getTransactionHistoryRoute: RequestHandler = async (req: Request, res: Response) => {
+        const { userID: pUserId } = req.body;
+
+        if (!pUserId) {
+            res.status(400).send("Parâmetro 'userId' faltando.");
+            return;
+        }
+
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+    
+            // Consulta as transações do usuário
+            const transactions: any = await connection.execute(
+                'SELECT TRANSACTION_ID, TYPE_, AMOUNT, DATE_ FROM TRANSACTIONS WHERE USER_ID = :user_id ORDER BY DATE_ DESC',
+                [pUserId],
+                { outFormat: OracleDB.OUT_FORMAT_OBJECT }
+            );
+    
+            // Verifica se há transações
+            if (transactions.rows.length === 0) {
+                res.status(404).send("Nenhuma transação encontrada para este usuário.");
+                return;
+            }
+    
+            // Retorna o histórico de transações
+            res.status(200).json(transactions.rows);
+        } catch (error) {
+            console.error('Erro ao buscar transações:', error);
+            res.status(500).send("Erro ao buscar transações.");
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
         }
     };
 
