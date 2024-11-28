@@ -9,12 +9,8 @@ export namespace walletHandler {
     
     // Rota para depósito de cartao de credito / adicionar fundos à carteira do usuário
     export const addFundsToWalletRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pUserId = req.get('userId');
-        const pAmount = Number(req.get('amount'));
-        const pCardNumber = req.get('cardNumber');
-        const pCardName = req.get('cardName');
-        const pCardExpiration = req.get('cardExpiration');
-        const pCardCVV = req.get('cardCVV');
+        const { userId: pUserId, amount: pAmount, cardNumber: pCardNumber, cardName: pCardName, 
+            cardExpiration: pCardExpiration, cardCVV: pCardCVV} = req.body;
 
         // Função para validar número do cartão usando Regex
         const isValidCardNumber = (cardNumber: string) => {
@@ -25,22 +21,22 @@ export namespace walletHandler {
 
         // Função para validar a data de expiração (MM/YY)
         const isValidExpirationDate = (expirationDate: string) => {
-            const [month, year] = expirationDate.split('/').map(Number);
+            const [year, month] = expirationDate.split('-').map(Number);
             if (!month || !year || month < 1 || month > 12) return false;
-
+        
             const currentDate = new Date();
-            const currentYear = parseInt(currentDate.getFullYear().toString().slice(-2));
+            const currentYear = currentDate.getFullYear();
             const currentMonth = currentDate.getMonth() + 1;
-
+        
             return year > currentYear || (year === currentYear && month >= currentMonth);
-        };
+        };        
 
         // Função para validar o CVV (deve ter 3 ou 4 dígitos)
         const isValidCVV = (cvv: string) => {
             return /^[0-9]{3,4}$/.test(cvv);
         };
 
-        if (!pUserId || isNaN(pAmount) || pAmount <= 0) {
+        if (!pUserId || isNaN(pAmount) || pAmount <= 0 || !pCardName) {
             res.status(400).send("Parâmetros inválidos ou faltantes.");
             return;
         }
@@ -145,7 +141,7 @@ export namespace walletHandler {
                         { autoCommit: true }
                     );
 
-                    if (pTransferType === 'bank') {
+                    if (pTransferType === 'banco') {
                         res.status(200).send(`Saque via transferência bancária realizado.`);
                     } else if (pTransferType === 'pix') {
                         res.status(200).send(`Saque via PIX realizado.`);
