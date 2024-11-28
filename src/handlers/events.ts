@@ -266,9 +266,7 @@ export namespace EventsHandler {
                                 ` +`Descrição: ${row.DESCRIPTION}
                                 ` +`Time 1: ${row.TEAM1}
                                 ` +`Time 2: ${row.TEAM2}
-                                ` +`Data: ${row.EVENT_DATE}
-                                ` +`Hora: ${row.EVENT_HOUR}
-            
+                                ` +`Data: ${row.EVENT_DATE}            
                 `;
             }
             

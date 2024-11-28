@@ -1,10 +1,9 @@
-// Função principal
+// Função principal para atualizar os campos dinâmicos
 function paymentMethod(method) {
     const dynamicFields = document.getElementById('dynamicFields'); // Container para os campos dinâmicos
 
     // Limpa os campos dinâmicos antes de adicionar novos
     dynamicFields.innerHTML = '';
-    
 
     if (method === 'pix') {
         // Adiciona os campos específicos para Pix
@@ -27,6 +26,8 @@ function paymentMethod(method) {
     }
 }
 
-// Adicionando os eventos de clique aos botões
-document.getElementById('pix').addEventListener('click', () => paymentMethod('pix'));
-document.getElementById('banco').addEventListener('click', () => paymentMethod('banco'));
+// Adicionando o evento de mudança para o select de método de pagamento
+document.getElementById('category').addEventListener('change', (event) => {
+    const method = event.target.value; // Obtém o valor da opção selecionada
+    paymentMethod(method); // Chama a função para atualizar os campos
+});

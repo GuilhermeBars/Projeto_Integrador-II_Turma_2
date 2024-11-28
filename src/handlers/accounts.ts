@@ -22,12 +22,6 @@ export namespace AccountsHandler {
         }
     }
 
-    export type UserAccount = {
-        name: string; 
-        email: string; 
-        password: string; 
-    };
-
     async function login(email: string, password: string): Promise<{ token: string, user_id: string } | undefined> {
         const connection: any = await connectOracle();
         OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
@@ -91,7 +85,9 @@ export namespace AccountsHandler {
                         message: 'Login realizado com sucesso.',
                         token: token,
                         balance: balance,
-                        email: pEmail
+                        email: pEmail,
+                        password: pPassword,
+                        user_id: user_id
                     });
                 } else {
                     res.status(401).send('Credenciais inválidas.');

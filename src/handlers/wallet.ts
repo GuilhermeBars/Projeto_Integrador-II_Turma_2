@@ -108,13 +108,11 @@ export namespace walletHandler {
 
     // Rota para sacar fundos da carteira do usuário
     export const withdrawFundsRoute: RequestHandler = async (req: Request, res: Response) => {
-        const pUserId = req.get('userId');
-        const pAmount = Number(req.get('amount'));
-        const pTransferType:any = req.get('transferType');
+        const { userId: pUserId, amount: pAmount, transferType: pTransferType} = req.body;
         
         if (pUserId && !isNaN(pAmount) && pAmount > 0 ) {
-            const fee = calculateWithdrawalFee(pAmount);
-            const totalAmount = pAmount + fee;
+            const fee = Number(calculateWithdrawalFee(pAmount));
+            const totalAmount: number = Number(pAmount) + Number(fee);
     
             let connection;
             try {

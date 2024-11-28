@@ -17,13 +17,17 @@ async function handleLogin(event) {
 
             const token = data.token;
             const balance = data.balance;
-            const email = data.email
+            const email = data.email;
+            const user_id = data.user_id;
+            const password = data.password;
 
             alert(`Login bem-sucedido!`);
 
             sessionStorage.setItem("authToken", token);
             sessionStorage.setItem("balance", balance);
             sessionStorage.setItem("email", email);
+            sessionStorage.setItem("user_id", user_id);
+            sessionStorage.setItem("password", password);
 
             window.location.href = "/indexaftertoken.html";
         } else {
