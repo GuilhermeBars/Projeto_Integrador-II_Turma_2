@@ -145,9 +145,9 @@ form{
 
 }
 .col2 {
-    flex: 1; /* Faz a coluna ocupar o espaço disponível */
-    margin: 0; /* Remove margens extras */
-    padding: 0; /* Remove espaçamento interno */
+    flex: 1;
+    margin: 0;
+    padding: 0;
     height: 50px;
 }
 .profile2{
@@ -166,6 +166,6 @@ form{
 
 }
 .container {
-    padding: 20px; /* Ajusta o espaçamento interno */
-    max-width: 100%; /* Certifique-se de que não limite os elementos */
+    padding: 20px;
+    max-width: 100%;
 }

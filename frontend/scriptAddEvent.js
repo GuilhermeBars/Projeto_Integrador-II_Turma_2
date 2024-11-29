@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const addEventButton = document.getElementById("addEventBtn");
         addEventButton.addEventListener("click", async function () {
-            // Captura os valores do formulário
             const eventName = document.getElementById("titleEvent").value.trim();
             const eventDescription = document.getElementById("descEvent").value.trim();
             const date1 = document.getElementById("date1").value;
@@ -25,9 +24,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Monta o objeto para enviar ao backend
             const eventData = {
-                email: sessionStorage.getItem("email"), // Substituir pelo e-mail do usuário autenticado
+                email: sessionStorage.getItem("email"),
                 event_name: eventName,
                 event_description: eventDescription,
                 team1: team1,
@@ -38,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             try {
-                // Envia a requisição ao backend
                 const response = await fetch("http://localhost:3000/addNewEvent", {
                     method: "PUT",
                     headers: {

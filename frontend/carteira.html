@@ -25,7 +25,7 @@
         </svg> Eventos</a>  </p>
     </div>
 <div class="container">
-    <label class="cash" style="position: relative; top: -50px; position: relative; left: -15px;">Saldo: R$00,00</label>
+    <label class="cash" style="position: relative; top: -50px; position: relative; left: -15px; " id="cashBalance">Saldo: R$00,00</label>
     <nav class="events"> <div class="row text-center">
   <div class="col-12 d-flex justify-content-center" style="gap: 20px;">
     <div class="coldep" style="border: none; box-shadow: none; position: relative; left: -150px;">
@@ -44,27 +44,28 @@
                 <tr>
                   <th scope="col">ID</th>
                   <th scope="col">Valor</th>
-                  <th scope="col">Horario</th>
                   <th scope="col">Tipo</th>
+                  <th scope="col">Método</th>
+                  <th scope="col">Data</th>
                 </tr>
               </thead>
+              <tbody>
+
+              </tbody>
           </table>
       </div>
-      <div class="coltran col-md-6 text-center" style="border: 2px solid red;">
-          <p style="color:white; font-weight: bold;">Históricos de Bets</p>
-          <table class="table table-dark">
-              <thead>
-                <tr>
-                  <th scope="col">ID</th>
-                  <th scope="col">Valor</th>
-                  <th scope="col">Evento</th>
-                  <th scope="col">Time Apostado</th>
-                </tr>
-              </thead>
-          </table>
-      </div>
+      
     </div>
 </nav>
 </div>    
-<script src="scriptcarteira.js"></script>
+<script src="scriptTransactions.js"></script>
+<script>
+  window.onload = function() {
+    const balance = sessionStorage.getItem("balance");
+
+    if (balance) {
+      document.getElementById("cashBalance").innerText = `R$ ${parseFloat(balance).toFixed(2)}`;
+    }
+  }
+</script>
 </body>

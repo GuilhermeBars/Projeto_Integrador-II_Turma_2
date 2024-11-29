@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     console.log("Usuário autenticado, token:", token);
 
-    // Função genérica para realizar apostas
     async function placeBet(betTeam) {
         const user_id = sessionStorage.getItem("user_id");
         const event_id = sessionStorage.getItem("event_id");
@@ -86,7 +85,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // Adicionar eventos aos botões de aposta
     document.getElementById("team1").addEventListener("click", () => placeBet("1"));
     document.getElementById("team2").addEventListener("click", () => placeBet("2"));
 });

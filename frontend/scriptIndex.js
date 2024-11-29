@@ -62,7 +62,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         cell.style.textAlign = "center";
     }
 
-    // Chamadas para os dois endpoints
     await fetchEventData("http://localhost:3000/eventMaisApostado", "tableEvent1");
     await fetchEventData("http://localhost:3000/eventMaisProximo", "tableEvent2");
 });
@@ -74,16 +73,13 @@ document.addEventListener("DOMContentLoaded", function() {
     if (searchButton && searchInput) {
         searchButton.addEventListener("click", function(event) {
             event.preventDefault();
-            const searchTerm = searchInput.value.trim(); // Pega o termo de pesquisa
+            const searchTerm = searchInput.value.trim();
             
             if (searchTerm) {
-                // Armazena o termo de pesquisa no sessionStorage
                 sessionStorage.setItem("searchTerm", searchTerm);
 
-                // Redireciona para a página de busca
                 window.location.href = `http://localhost:3000/searchEvents.html`
             } else {
-                // Caso o campo de pesquisa esteja vazio, você pode redirecionar para a página sem parâmetro
                 window.location.href = "http://localhost:3000/searchEvents.html";
             }
         });

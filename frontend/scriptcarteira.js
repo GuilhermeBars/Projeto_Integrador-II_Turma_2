@@ -1,19 +1,15 @@
-// Função principal para atualizar os campos dinâmicos
 function paymentMethod(method) {
-    const dynamicFields = document.getElementById('dynamicFields'); // Container para os campos dinâmicos
+    const dynamicFields = document.getElementById('dynamicFields');
 
-    // Limpa os campos dinâmicos antes de adicionar novos
     dynamicFields.innerHTML = '';
 
     if (method === 'pix') {
-        // Adiciona os campos específicos para Pix
         dynamicFields.innerHTML = `
             <div class="form-floating mb-2" style="box-shadow: rgba(0, 0, 0, 0.534) 0px 3px 5px">
                 <input type="text" class="form-control" id="pixKey" placeholder="Chave Pix">
                 <label for="pixKey">Chave Pix (CPF ou Email)</label>
             </div>`;
     } else if (method === 'banco') {
-        // Adiciona os campos específicos para Transferência Bancária
         dynamicFields.innerHTML = `
             <div class="form-floating mb-2" style="box-shadow: rgba(0, 0, 0, 0.534) 0px 3px 5px">
                 <input type="text" class="form-control" id="contaCorrente" placeholder="Conta Corrente">
@@ -26,8 +22,7 @@ function paymentMethod(method) {
     }
 }
 
-// Adicionando o evento de mudança para o select de método de pagamento
 document.getElementById('category').addEventListener('change', (event) => {
-    const method = event.target.value; // Obtém o valor da opção selecionada
-    paymentMethod(method); // Chama a função para atualizar os campos
+    const method = event.target.value;
+    paymentMethod(method);
 });

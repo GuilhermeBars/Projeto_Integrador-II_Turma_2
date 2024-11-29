@@ -1,5 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Função para buscar transações do servidor
+    const token = sessionStorage.getItem("authToken");
+
+    if (!token) {
+        alert("Você precisa estar logado!");
+        window.location.href = "/login.html";
+        return;
+    }
+    
     async function getTransactions() {
         try {
             const user_id = sessionStorage.getItem('user_id');
@@ -11,17 +18,16 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const response = await fetch('http://localhost:3000/transactions', {
-                method: 'POST', // ou 'GET', dependendo da sua implementação
+                method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(transactionData),
               });
               
-              const textResponse = await response.text(); // Pega a resposta como texto
-              console.log(textResponse); // Verifique no console o que está sendo retornado
-              
-              // Tente analisar a resposta como JSON
+              const textResponse = await response.text();
+              console.log(textResponse);
+
               let transactions;
               try {
                 transactions = JSON.parse(textResponse);
@@ -31,13 +37,11 @@ document.addEventListener('DOMContentLoaded', function () {
               }
     
             const tableBody = document.querySelector('tbody');
-            tableBody.innerHTML = ''; // Limpa a tabela antes de adicionar novos dados
+            tableBody.innerHTML = '';
     
             transactions.forEach(transaction => {
-                // Cria um objeto Date a partir da string de data
                 const transactionDate = new Date(transaction.DATE_);
                 
-                // Formata a data para o formato desejado (ex: DD/MM/YYYY HH:mm)
                 const formattedDate = transactionDate.toLocaleString('pt-BR', {
                     day: '2-digit',
                     month: '2-digit',
@@ -59,6 +63,5 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
   
-    // Chama a função para preencher a tabela quando a página carregar
     getTransactions();
 });

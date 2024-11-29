@@ -29,7 +29,7 @@ async function handleLogin(event) {
             sessionStorage.setItem("user_id", user_id);
             sessionStorage.setItem("password", password);
 
-            window.location.href = "/indexaftertoken.html";
+            window.location.href = "/index.html";
         } else {
             const error = await response.text();
             alert(`Erro ao logar: ${error}`);

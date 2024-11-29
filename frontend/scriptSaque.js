@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     withdrawButton.setAttribute("disabled", "disabled");
 
-    // Função para validar os campos
     function validateFields() {
         const valor = saqueValor.value.trim();
         const method = category.value;
@@ -27,14 +26,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         let isValid = false;
 
         if (method === "pix") {
-            // Para PIX, é necessário um valor maior que 0 e a chave Pix
             isValid = valor && parseFloat(valor) > 0 && pixKey;
         } else if (method === "banco") {
-            // Para Banco, é necessário um valor maior que 0 e dados de conta bancária
             isValid = valor && parseFloat(valor) > 0 && contaCorrente && agencia;
         }
 
-        // Atualiza o estado do botão
         if (isValid) {
             withdrawButton.removeAttribute("disabled");
         } else {
@@ -42,26 +38,21 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
-    // Evento para mostrar os campos dinâmicos ao selecionar o método
     category.addEventListener("change", function () {
         const method = category.value;
 
-        // Limpa os campos dinâmicos
         dynamicFields.innerHTML = "";
 
         if (method === "pix") {
-            // Adiciona o campo de Chave Pix
             dynamicFields.innerHTML = `
                 <div class="form-floating mb-2" style="box-shadow: rgba(0, 0, 0, 0.534) 0px 3px 5px">
                     <input type="text" class="form-control" id="pixKey" placeholder="Chave Pix">
                     <label for="pixKey">Chave Pix (CPF ou Email)</label>
                 </div>`;
 
-            // Adiciona evento de validação ao campo Pix
             const pixKeyInput = document.getElementById("pixKey");
             pixKeyInput.addEventListener("input", validateFields);
         } else if (method === "banco") {
-            // Adiciona os campos específicos para Transferência Bancária
             dynamicFields.innerHTML = `
                 <div class="form-floating mb-2" style="box-shadow: rgba(0, 0, 0, 0.534) 0px 3px 5px">
                     <input type="text" class="form-control" id="contaCorrente" placeholder="Conta Corrente">
@@ -72,21 +63,17 @@ document.addEventListener("DOMContentLoaded", async function () {
                     <label for="agencia">Agência</label>
                 </div>`;
 
-            // Adiciona eventos de validação aos campos Banco e Conta Corrente
             const contaCorrenteInput = document.getElementById("contaCorrente");
             contaCorrenteInput.addEventListener("input", validateFields);
             const agenciaInput = document.getElementById("agencia");
             agenciaInput.addEventListener("input", validateFields);
         }
 
-        // Valida os campos ao mudar o método
         validateFields();
     });
 
-    // Eventos de validação para os campos principais
     saqueValor.addEventListener("input", validateFields);
 
-    // Evento de clique no botão de saque
     withdrawButton.addEventListener("click", async function () {
         const valor = saqueValor.value.trim();
         const method = category.value;
@@ -95,7 +82,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         const agencia = document.getElementById("agencia")?.value.trim();
         const user_id = sessionStorage.getItem("user_id");
 
-        // Valida novamente os campos antes de enviar
         const withdrawData = {
             amount: valor,
             userId: user_id,
@@ -105,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             agencia: method === "banco" ? agencia : undefined,
         };
 
-        console.log("Enviando dados de saque:", withdrawData); // Log para depuração
+        console.log("Enviando dados de saque:", withdrawData);
 
         try {
             const response = await fetch("http://localhost:3000/withdrawFunds", {
@@ -121,7 +107,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 const message = await response.text();
                 alert(message);
 
-                // Atualiza o saldo
                 const email = sessionStorage.getItem("email");
                 const password = sessionStorage.getItem("password");
                 const loginResponse = await fetch("http://localhost:3000/login", {

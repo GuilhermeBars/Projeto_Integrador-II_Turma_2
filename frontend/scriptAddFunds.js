@@ -1,19 +1,16 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const token = sessionStorage.getItem("authToken");
 
-    // Verifica se o token está presente
     if (!token) {
         alert("Você precisa estar logado!");
         window.location.href = "/login.html";
-        return; // Impede a execução do restante do código
+        return;
     }
 
     console.log("Usuário autenticado, token:", token);
 
-    // Captura o botão
     const addFundsButton = document.getElementById("buttonAddFunds");
 
-    // Adiciona o evento de clique
     addFundsButton.addEventListener("click", async function () {
         const user_id = sessionStorage.getItem("user_id");
         const valor = document.getElementById("Valor").value;
@@ -22,7 +19,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         const cardExpiration = document.getElementById("cardDate").value;
         const cardCVV = document.getElementById("cardCVV").value;
 
-        // Validação dos campos
         if (!valor || !cardNumber || !cardName || !cardExpiration || !cardCVV) {
             alert("Preencha todos os campos obrigatórios.");
             return;

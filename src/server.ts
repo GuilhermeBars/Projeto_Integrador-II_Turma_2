@@ -3,7 +3,7 @@ import {Request, Response, Router} from "express";
 import { AccountsHandler } from "./handlers/accounts";
 import { walletHandler } from "./handlers/wallet";
 import { EventsHandler } from "./handlers/events";
-import path from "path"; // Para manipulação de caminhos
+import path from "path";
 
 const port = 3000; 
 const server = express();

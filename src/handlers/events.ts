@@ -31,11 +31,8 @@ export namespace EventsHandler {
         }
     };
 
-    // Rota para adicionar um novo evento
     export const addEventRoute: RequestHandler = async (req: Request, res: Response) => {
         const { email, event_name, event_description, team1, team2, date1, date2, categoria } = req.body;
-
-        //console.log({ pTitle, pDescription, pTeam1, pTeam2, pEmail, pCategoria});
 
         if (event_name && event_description && team1 && team2 && date1 && date2 && email && categoria) {
             let connection;
@@ -77,7 +74,6 @@ export namespace EventsHandler {
         }
     };
 
-    // Rota para obter todos os eventos armazenados
     export const getEventsRoute: RequestHandler = async (req: Request, res: Response) => {
         let connection;
         try {
@@ -87,7 +83,6 @@ export namespace EventsHandler {
                 connectString: process.env.ORACLE_CONN_STR
             });
     
-            // Busca todos os eventos do banco de dados
             const eventsResult: any = await connection.execute(
                 "SELECT * FROM EVENTS WHERE STATUS_ = 'approved'",
                 [],
@@ -120,7 +115,6 @@ export namespace EventsHandler {
                 connectString: process.env.ORACLE_CONN_STR
             });
     
-            // Busca todos os eventos do banco de dados
             const eventsResult: any = await connection.execute(
                 "SELECT * FROM EVENTS WHERE STATUS_ = 'approved' AND EVENT_ID = :eventId",
                 [pEventId],
@@ -142,8 +136,6 @@ export namespace EventsHandler {
         }
     };
     
-
-    // Rota para deletar um evento pelo índice fornecido
     export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {
         const pEventId = req.get('eventId');
 
@@ -180,7 +172,6 @@ export namespace EventsHandler {
         }
     };
 
-    // Rota para avaliar um evento novo
     export const evaluateNewEventRoute: RequestHandler = async (req: Request, res: Response) => {
         const pEmail = req.get('email');
         const pEventId = req.get('eventId');
@@ -261,7 +252,6 @@ export namespace EventsHandler {
         }
     }
     
-    // Função para buscar eventos por palavra-chave no banco de dados Oracle
     export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
         const keyword: any = req.get('keyword');
         let connection;
@@ -374,5 +364,35 @@ export namespace EventsHandler {
         }
     };
     
+    export const eventCategoria: RequestHandler = async (req: Request, res: Response) => {
+        const categoria: any = req.get('categoria');
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
     
+            const eventsResult: any = await connection.execute(
+                `SELECT * FROM EVENTS 
+                WHERE STATUS_ = 'approved' 
+                AND CATEGORIA = ':categoria'`,
+                [ `%${categoria.toLowerCase()}%` ]
+            );
+    
+            if (eventsResult.rows.length === 0) {
+                res.status(200).json({ message: "Nenhum evento encontrado." });
+            } else {
+                res.status(200).json({ events: eventsResult.rows });
+            }
+        } catch (error) {
+            console.error('Erro ao buscar eventos:', error);
+            res.status(500).json({ message: "Erro ao buscar eventos." });
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
+        }
+    }
 };

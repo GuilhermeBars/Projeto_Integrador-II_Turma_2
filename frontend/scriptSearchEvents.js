@@ -1,4 +1,12 @@
 document.addEventListener("DOMContentLoaded", async function () {
+    const token = sessionStorage.getItem("authToken");
+
+    if (!token) {
+        alert("Você precisa estar logado!");
+        window.location.href = "/login.html";
+        return;
+    }
+    
     const searchTerm = sessionStorage.getItem("searchTerm");
     console.log(searchTerm);
 
@@ -26,7 +34,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 throw new Error("Nenhum evento encontrado ou formato inválido.");
             }
 
-            // Renderiza a tabela com os eventos recebidos
             table.innerHTML = `
                 <tr>
                     <th>ID</th>
@@ -40,7 +47,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             `;
 
             data.events.forEach(event => {
-                // Validando se é um objeto com as chaves esperadas
                 if (typeof event !== "object" || event === null || !event.EVENT_ID) {
                     console.error("Formato inesperado para evento:", event);
                     return;
@@ -87,16 +93,13 @@ document.addEventListener("DOMContentLoaded", function() {
     if (searchButton && searchInput) {
         searchButton.addEventListener("click", function(event) {
             event.preventDefault();
-            const searchTerm = searchInput.value.trim(); // Pega o termo de pesquisa
+            const searchTerm = searchInput.value.trim();
             
             if (searchTerm) {
-                // Armazena o termo de pesquisa no sessionStorage
                 sessionStorage.setItem("searchTerm", searchTerm);
 
-                // Redireciona para a página de busca
                 window.location.href = `http://localhost:3000/searchEvents.html`
             } else {
-                // Caso o campo de pesquisa esteja vazio, você pode redirecionar para a página sem parâmetro
                 window.location.href = "http://localhost:3000/searchEvents.html";
             }
         });

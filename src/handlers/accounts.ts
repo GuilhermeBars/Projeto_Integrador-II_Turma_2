@@ -2,7 +2,6 @@ import { Request, RequestHandler, Response } from "express";
 import OracleDB from "oracledb"; 
 import dotenv from 'dotenv'; 
 import { resolve } from 'path'; 
-import { get } from "http";
 
 dotenv.config({ path: resolve('C:/workspace/outros/.env') });
 
@@ -71,14 +70,14 @@ export namespace AccountsHandler {
     }
 
     export const loginRoute: RequestHandler = async (req: Request, res: Response) => {
-        const { email: pEmail, password: pPassword } = req.body; // Extrai email e password do corpo da requisição
+        const { email: pEmail, password: pPassword } = req.body;
     
         if (pEmail && pPassword) {
             const loginResult = await login(pEmail, pPassword);
     
             if (loginResult) {
                 const { token, user_id } = loginResult;
-                const balance = await getBalance(user_id); // Busca o balance do usuário
+                const balance = await getBalance(user_id);
     
                 if (token) {
                     res.status(200).json({
@@ -126,9 +125,9 @@ export namespace AccountsHandler {
         const {name: pName, email: pEmail, password: pPassword, birthdate: pBirthdate} = req.body;
 
         if (pName && pEmail && pPassword && pBirthdate) {
-            const user_year = Number(pBirthdate.substring(0, 4)); // Ano
-            const user_month = Number(pBirthdate.substring(5, 7)); // Mês
-            const user_day = Number(pBirthdate.substring(8, 10)); // Dia
+            const user_year = Number(pBirthdate.substring(0, 4));
+            const user_month = Number(pBirthdate.substring(5, 7));
+            const user_day = Number(pBirthdate.substring(8, 10));
             
             console.log(user_year);
             console.log(user_month);
@@ -136,23 +135,20 @@ export namespace AccountsHandler {
             
             const today = new Date();
             const today_year = today.getFullYear();
-            const today_month = today.getMonth() + 1; // Mes atual (0-indexed, então somamos 1)
-            const today_day = today.getDate(); // Dia atual
+            const today_month = today.getMonth() + 1;
+            const today_day = today.getDate();
             
             const today_date = today_year + "-" + String(today_month).padStart(2, '0') + "-" + String(today_day).padStart(2, '0');
             console.log(today_date);
             
-            // Calculando a idade
             let age = today_year - user_year;
             
-            // Verificando se o aniversário já passou no ano atual
             if (today_month < user_month || (today_month === user_month && today_day < user_day)) {
-                age -= 1; // Subtrai 1 se o aniversário ainda não ocorreu
+                age -= 1;
             }
             
             console.log("Idade do usuário:", age);
             
-            // Verifica se o usuário tem menos de 18 anos
             if (age < 18) {
                 res.status(403).send("Usuário deve ter pelo menos 18 anos.");
                 return;
