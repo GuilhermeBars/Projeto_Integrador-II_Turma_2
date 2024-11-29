@@ -108,6 +108,39 @@ export namespace EventsHandler {
             }
         }
     };
+
+    export const getSpecificEvent: RequestHandler = async (req: Request, res: Response) => {
+        const pEventId = req.get('eventId');
+
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+    
+            // Busca todos os eventos do banco de dados
+            const eventsResult: any = await connection.execute(
+                "SELECT * FROM EVENTS WHERE STATUS_ = 'approved' AND EVENT_ID = :eventId",
+                [pEventId],
+                { outFormat: OracleDB.OUT_FORMAT_OBJECT }
+            );
+    
+            if (eventsResult.rows.length === 0) {
+                res.status(200).json({ message: "Nenhum evento encontrado." });
+            } else {
+                res.status(200).json({ events: eventsResult.rows });
+            }
+        } catch (error) {
+            console.error('Erro ao buscar eventos:', error);
+            res.status(500).json({ message: "Erro ao buscar eventos." });
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
+        }
+    };
     
 
     // Rota para deletar um evento pelo índice fornecido

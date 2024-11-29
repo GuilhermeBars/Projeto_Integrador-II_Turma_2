@@ -29,6 +29,7 @@ routes.put('/evaluateEvent', EventsHandler.evaluateNewEventRoute);
 routes.get('/searchEvents', EventsHandler.searchEventRoute);
 routes.get('/eventMaisApostado', EventsHandler.eventMaisApostado);
 routes.get('/eventMaisProximo', EventsHandler.eventMaisProximo);
+routes.post('/specificEvent', EventsHandler.getSpecificEvent);
 
 routes.post('/addFunds', walletHandler.addFundsToWalletRoute);
 routes.put('/withdrawFunds', walletHandler.withdrawFundsRoute);

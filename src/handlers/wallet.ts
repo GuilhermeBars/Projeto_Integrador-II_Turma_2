@@ -71,8 +71,8 @@ export namespace walletHandler {
             );
 
             await connection.execute(
-                'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE)',
-                [pUserId, "credit_card", pAmount],
+                'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_, ACTION) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE, :action)',
+                [pUserId, "credit_card", pAmount, "Depósito"],
                 { autoCommit: true }
             );
             
@@ -136,8 +136,8 @@ export namespace walletHandler {
                     );
 
                     await connection.execute(
-                        'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE)',
-                        [pUserId, pTransferType, totalAmount],
+                        'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_, ACTION) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE, :action)',
+                        [pUserId, pTransferType, totalAmount, "Saque"],
                         { autoCommit: true }
                     );
 
@@ -199,8 +199,8 @@ export namespace walletHandler {
                     );
 
                     await connection.execute(
-                        'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE)',
-                        [pUserId, "bet", pBetAmount],
+                        'INSERT INTO TRANSACTIONS (TRANSACTION_ID, USER_ID, TYPE_, AMOUNT, DATE_, ACTION) VALUES (SEQ_TRANSACTIONS.NEXTVAL, :email, :type, :amount, SYSDATE, :action)',
+                        [pUserId, " ", pBetAmount, "Aposta"],
                         { autoCommit: true }
                     );
                 }
@@ -307,7 +307,7 @@ export namespace walletHandler {
     
             // Consulta as transações do usuário
             const transactions: any = await connection.execute(
-                'SELECT TRANSACTION_ID, TYPE_, AMOUNT, DATE_ FROM TRANSACTIONS WHERE USER_ID = :user_id ORDER BY DATE_ DESC',
+                'SELECT TRANSACTION_ID, TYPE_, AMOUNT, DATE_, ACTION FROM TRANSACTIONS WHERE USER_ID = :user_id ORDER BY DATE_ DESC',
                 [pUserId],
                 { outFormat: OracleDB.OUT_FORMAT_OBJECT }
             );
