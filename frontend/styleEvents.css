@@ -6,10 +6,9 @@ body{
 }
 .barralateral{
     width: 200px;
-    height: auto;
+    height: 100vh;
     background-color:#18171f;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    
 }
 img{
     padding:15px;

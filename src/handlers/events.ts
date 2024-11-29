@@ -146,7 +146,6 @@ export namespace EventsHandler {
     // Rota para deletar um evento pelo índice fornecido
     export const deleteEventsRoute: RequestHandler = async (req: Request, res: Response) => {
         const pEventId = req.get('eventId');
-        
 
         if (!pEventId) {
             res.status(400).send("ID do evento não fornecido.");
@@ -264,53 +263,36 @@ export namespace EventsHandler {
     
     // Função para buscar eventos por palavra-chave no banco de dados Oracle
     export const searchEventRoute: RequestHandler = async (req: Request, res: Response) => {
-        const keyword = req.get('keyword');
-
-        if (!keyword) {
-            res.statusCode = 400;
-            res.send("Você precisa informar uma palavra-chave para a busca.");
-            return;
+        const keyword: any = req.get('keyword');
+        let connection;
+        try {
+            connection = await OracleDB.getConnection({
+                user: process.env.ORACLE_USER,
+                password: process.env.ORACLE_PASSWORD,
+                connectString: process.env.ORACLE_CONN_STR
+            });
+    
+            const eventsResult: any = await connection.execute(
+                `SELECT * FROM EVENTS 
+                WHERE STATUS_ = 'approved' 
+                AND (LOWER(EVENT_NAME) LIKE '%' || :keyword || '%' 
+                    OR LOWER(DESCRICAO) LIKE '%' || :keyword || '%')`,
+                [ `%${keyword.toLowerCase()}%`, `%${keyword.toLowerCase()}%` ]
+            );
+    
+            if (eventsResult.rows.length === 0) {
+                res.status(200).json({ message: "Nenhum evento encontrado." });
+            } else {
+                res.status(200).json({ events: eventsResult.rows });
+            }
+        } catch (error) {
+            console.error('Erro ao buscar eventos:', error);
+            res.status(500).json({ message: "Erro ao buscar eventos." });
+        } finally {
+            if (connection) {
+                await connection.close();
+            }
         }
-
-        OracleDB.outFormat = OracleDB.OUT_FORMAT_OBJECT;
-
-        const connection = await OracleDB.getConnection({
-            user: process.env.ORACLE_USER,
-            password: process.env.ORACLE_PASSWORD,
-            connectString: process.env.ORACLE_CONN_STR
-        });
-
-        // Busca eventos que tenham a palavra-chave no título ou descrição
-        const result: any = await connection.execute(
-            `SELECT * FROM EVENTS WHERE LOWER(EVENT_NAME) LIKE :keyword OR LOWER(DESCRICAO) LIKE :keyword`,
-            [ `%${keyword.toLowerCase()}%`, `%${keyword.toLowerCase()}%` ]
-        );
-        
-        await connection.close(); 
-
-        if (result.rows.length > 0) {
-            let eventsList = '';
-            
-            // Percorre todos os eventos encontrados e formata as informações
-            for (let i = 0; i < result.rows.length; i++) {
-                const row = result.rows[i];
-                eventsList += `Evento ${i + 1}:
-                                ` +`Título: ${row.EVENT_NAME}
-                                ` +`Descrição: ${row.DESCRIPTION}
-                                ` +`Time 1: ${row.TEAM1}
-                                ` +`Time 2: ${row.TEAM2}
-                                ` +`Data: ${row.EVENT_DATE}            
-                `;
-            }
-            
-            res.statusCode = 200;
-            res.send(eventsList); // Retorna os eventos encontrados cada um como uma stringzona como ali em cima 
-            } 
-            
-            else {
-                res.statusCode = 200;
-                res.send("Nenhum evento foi encontrado que contém essa palavra.");
-            }
     }
 
     export const eventMaisApostado: RequestHandler = async (req: Request, res: Response) => {

@@ -26,7 +26,7 @@ routes.put('/addNewEvent', EventsHandler.addEventRoute);
 routes.get('/getEvents', EventsHandler.getEventsRoute);
 routes.delete('/deleteEvent', EventsHandler.deleteEventsRoute);
 routes.put('/evaluateEvent', EventsHandler.evaluateNewEventRoute);
-routes.get('/searchEvents', EventsHandler.searchEventRoute);
+routes.post('/searchEvents', EventsHandler.searchEventRoute);
 routes.get('/eventMaisApostado', EventsHandler.eventMaisApostado);
 routes.get('/eventMaisProximo', EventsHandler.eventMaisProximo);
 routes.post('/specificEvent', EventsHandler.getSpecificEvent);

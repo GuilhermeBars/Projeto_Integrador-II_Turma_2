@@ -1,4 +1,3 @@
-/* */
 body{
     display:flex;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
@@ -111,14 +110,14 @@ form{
 }
 .col{ 
     box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
-    width: 110px;
-    height:110px;
+    height: auto;
     background-color: white;
     margin: 10px;
+    padding: 20px;
     background-color: #18171f;
     border-radius: 6px;
     border: solid 2px #ed1c24;
-    width: 100%;
+    
 }
 .aposteagora{
     background-color: #ed1c24;
@@ -144,4 +143,29 @@ form{
     transform: scale(1.05);
     background-color: #ed1c24;
 
+}
+.col2 {
+    flex: 1; /* Faz a coluna ocupar o espaço disponível */
+    margin: 0; /* Remove margens extras */
+    padding: 0; /* Remove espaçamento interno */
+    height: 50px;
+}
+.profile2{
+    border:2px solid #ed1c24;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    background-color: #18171f;
+    color:white;
+    border-radius:5px;
+    width: 100%;
+    height: 100%;
+    position: relative;
+} 
+.profile2:hover{
+    transform: scale(1.05);
+    background-color: #ed1c24;
+
+}
+.container {
+    padding: 20px; /* Ajusta o espaçamento interno */
+    max-width: 100%; /* Certifique-se de que não limite os elementos */
 }
